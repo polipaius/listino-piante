@@ -273,7 +273,8 @@
         .modal-text { font-size: 14px; line-height: 1.6; color: var(--ink); margin: 14px 0 16px; }
         .modal-link {
             display: inline-block; font-size: 13.5px; font-weight: 500;
-            color: var(--accent); text-decoration: none;
+            color: var(--accent); text-decoration: none; font-family: inherit;
+            background: transparent; cursor: pointer;
             border: 1px solid var(--accent); padding: 8px 14px; border-radius: 8px;
             transition: all 0.15s;
         }
@@ -313,13 +314,34 @@
             font-size: 20px; font-weight: 600; color: var(--ink);
         }
         .summary-value.total { color: var(--accent); font-size: 24px; }
-        .btn-reset {
+        .summary-actions { display: flex; gap: 8px; }
+        .btn-save {
             font-family: inherit; font-size: 14px; font-weight: 500;
             background-color: var(--accent); color: #fff; border: none;
             padding: 11px 20px; border-radius: 10px; cursor: pointer;
             transition: background-color 0.15s;
         }
-        .btn-reset:hover { background-color: var(--accent-hover); }
+        .btn-save:hover { background-color: var(--accent-hover); }
+        .btn-reset {
+            font-family: inherit; font-size: 14px; font-weight: 500;
+            background: transparent; color: var(--accent); border: 1px solid var(--accent);
+            padding: 11px 18px; border-radius: 10px; cursor: pointer;
+            transition: all 0.15s;
+        }
+        .btn-reset:hover { background: var(--accent-tint); }
+
+        /* Riepilogo ordine */
+        .order-list { margin: 8px 0; max-height: 42vh; overflow: auto; }
+        .oitem {
+            display: flex; justify-content: space-between; gap: 10px;
+            font-size: 14px; color: var(--ink);
+            padding: 8px 0; border-bottom: 1px solid var(--line);
+        }
+        .oitem em { font-style: normal; font-size: 12.5px; color: var(--muted); }
+        .order-empty { color: var(--muted); font-size: 14px; margin: 6px 0; }
+        .order-total { font-size: 15px; color: var(--ink); margin: 10px 0 16px; }
+        .order-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .order-msg { font-size: 13px; color: var(--accent); margin-top: 12px; min-height: 18px; word-break: break-word; }
 
         /* ---- Mobile: ogni pianta diventa una card ---- */
         @media (max-width: 720px) {
@@ -416,7 +438,28 @@
         <div class="summary-label">Totale con IVA</div>
         <div class="summary-value total" id="total">€ 0,00</div>
     </div>
-    <button class="btn-reset" onclick="resetSelection()">Azzera selezione</button>
+    <div class="summary-actions">
+        <button class="btn-save" onclick="openOrder()">Salva ordine</button>
+        <button class="btn-reset" onclick="resetSelection()">Azzera</button>
+    </div>
+</div>
+
+<!-- Modale "La tua selezione" -->
+<div id="orderModal" class="modal-overlay" onclick="onOverlayClick(event)">
+    <div class="modal-card" role="dialog" aria-modal="true">
+        <button class="modal-close" onclick="closeModal()" aria-label="Chiudi">×</button>
+        <div class="modal-body">
+            <h2 class="modal-title">La tua selezione</h2>
+            <p class="modal-latin" id="oCount"></p>
+            <div class="order-list" id="oList"></div>
+            <div class="order-total" id="oTotal"></div>
+            <div class="order-actions">
+                <button class="modal-link" onclick="copyOrderText()">Copia riepilogo</button>
+                <button class="modal-link" onclick="copyOrderLink()">Copia link</button>
+            </div>
+            <p class="order-msg" id="oMsg"></p>
+        </div>
+    </div>
 </div>
 
 <!-- Modale foto / scheda specie -->
@@ -585,12 +628,12 @@
         "Viburno opalo":"Viburnum opulus", "Viburno tino":"Viburnum tinus"
     };
 
-    function cell(avail, key) {
+    function cell(avail, key, i) {
         const tag = '<span class="size-tag"><b>' + SIZE[key].l + '</b><i>' + SIZE[key].p + '</i></span>';
         if (!avail) return '<td class="qcell na">' + tag + '<span class="empty-cell">–</span></td>';
         return '<td class="qcell">' + tag + '<div class="stepper">' +
             '<button type="button" class="step" onclick="changeQty(this,-1)">−</button>' +
-            '<input type="number" class="qty" data-price="' + PRICES[key] + '" min="0" value="0" inputmode="numeric" oninput="onQtyInput(this)">' +
+            '<input type="number" class="qty" data-price="' + PRICES[key] + '" data-i="' + i + '" data-k="' + key + '" min="0" value="0" inputmode="numeric" oninput="onQtyInput(this)">' +
             '<button type="button" class="step" onclick="changeQty(this,1)">+</button>' +
         '</div></td>';
     }
@@ -617,7 +660,7 @@
         const icon = '<svg class="pn-ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>';
         tr.innerHTML =
             '<td><button type="button" class="plant-name ' + (req ? 'req' : '') + '" title="Mostra foto e scheda" onclick="openPlant(' + i + ')">' + p.n + icon + '</button>' + meta(p) + '</td>' +
-            cell(p.c1, 'c1') + cell(p.c3, 'c3') + cell(p.c20, 'c20');
+            cell(p.c1, 'c1', i) + cell(p.c3, 'c3', i) + cell(p.c20, 'c20', i);
         tbody.appendChild(tr);
     });
 
@@ -727,11 +770,11 @@
     }
 
     function closeModal() {
-        document.getElementById('modal').classList.remove('open');
+        document.querySelectorAll('.modal-overlay.open').forEach(o => o.classList.remove('open'));
         document.body.style.overflow = '';
         if (lastFocus) lastFocus.focus();
     }
-    function onOverlayClick(e) { if (e.target.id === 'modal') closeModal(); }
+    function onOverlayClick(e) { if (e.target.classList.contains('modal-overlay')) closeModal(); }
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
     /* ---- Quantità ---- */
@@ -758,23 +801,102 @@
     }
 
     /* ---- Totali ---- */
+    function euro(n) { return '€ ' + n.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
     function calculateTotal() {
         let subtotal = 0, items = 0;
         document.querySelectorAll('.qty').forEach(inp => {
             const q = parseInt(inp.value, 10) || 0;
-            if (q > 0) {
-                subtotal += q * parseFloat(inp.dataset.price);
-                items += q;
-            }
+            if (q > 0) { subtotal += q * parseFloat(inp.dataset.price); items += q; }
         });
         const iva = subtotal * 0.10;
-        const total = subtotal + iva;
-        const fmt = n => '€ ' + n.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         document.getElementById('count').innerText = items;
-        document.getElementById('subtotal').innerText = fmt(subtotal);
-        document.getElementById('iva').innerText = fmt(iva);
-        document.getElementById('total').innerText = fmt(total);
+        document.getElementById('subtotal').innerText = euro(subtotal);
+        document.getElementById('iva').innerText = euro(iva);
+        document.getElementById('total').innerText = euro(subtotal + iva);
+        saveLocal();
     }
+
+    /* ---- Salvataggio selezione (localStorage + link condivisibile) ---- */
+    const STORE = 'listino-piante-ordine';
+    function getOrder() {
+        const o = {};
+        document.querySelectorAll('.qty').forEach(inp => {
+            const q = parseInt(inp.value, 10) || 0;
+            if (q > 0) { (o[inp.dataset.i] = o[inp.dataset.i] || {})[inp.dataset.k] = q; }
+        });
+        return o;
+    }
+    function applyOrder(o) {
+        document.querySelectorAll('.qty').forEach(inp => {
+            const q = (o[inp.dataset.i] && o[inp.dataset.i][inp.dataset.k]) || 0;
+            inp.value = q; syncStepper(inp);
+        });
+        calculateTotal();
+    }
+    function saveLocal() { try { localStorage.setItem(STORE, JSON.stringify(getOrder())); } catch (e) {} }
+    function encodeOrder(o) {
+        const p = [];
+        for (const i in o) for (const k in o[i]) p.push(i + '-' + k.slice(1) + '-' + o[i][k]);
+        return p.join('.');
+    }
+    function decodeOrder(s) {
+        const o = {};
+        s.split('.').forEach(t => {
+            const m = t.split('-');
+            if (m.length === 3) { const q = parseInt(m[2], 10) || 0; if (q > 0) (o[m[0]] = o[m[0]] || {})['c' + m[1]] = q; }
+        });
+        return o;
+    }
+    function loadSaved() {
+        let o = null;
+        const h = (location.hash || '').match(/o=([^&]+)/);
+        if (h) { try { o = decodeOrder(decodeURIComponent(h[1])); } catch (e) {} }
+        if (!o || !Object.keys(o).length) { try { o = JSON.parse(localStorage.getItem(STORE) || 'null'); } catch (e) {} }
+        if (o && Object.keys(o).length) applyOrder(o);
+    }
+
+    /* ---- Modale "La tua selezione" (riepilogo / copia / link) ---- */
+    function openOrder() {
+        const o = getOrder(); const rows = []; let items = 0, sub = 0;
+        PLANTS.forEach((p, i) => {
+            if (o[i]) for (const k in o[i]) {
+                const q = o[i][k]; items += q; sub += q * PRICES[k];
+                rows.push('<div class="oitem"><span>' + p.n + ' <em>' + SIZE[k].l + '</em></span><span>×' + q + '</span></div>');
+            }
+        });
+        document.getElementById('oCount').textContent = items ? (items + ' piante') : '';
+        document.getElementById('oList').innerHTML = rows.length ? rows.join('') : '<p class="order-empty">Nessuna pianta selezionata.</p>';
+        document.getElementById('oTotal').innerHTML = rows.length ? ('Totale con IVA: <b>' + euro(sub * 1.10) + '</b>') : '';
+        document.getElementById('oMsg').textContent = '';
+        document.getElementById('orderModal').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    function orderText() {
+        const o = getOrder(); const lines = ['Ordine piante:']; let sub = 0;
+        PLANTS.forEach((p, i) => { if (o[i]) for (const k in o[i]) { const q = o[i][k]; sub += q * PRICES[k]; lines.push('- ' + p.n + ' (' + SIZE[k].l + ') x' + q); } });
+        lines.push('Totale con IVA: ' + euro(sub * 1.10));
+        return lines.join('\n');
+    }
+    function orderLink() {
+        const enc = encodeOrder(getOrder());
+        return location.origin + location.pathname + (enc ? '#o=' + enc : '');
+    }
+    function flash(msg) { document.getElementById('oMsg').textContent = msg; }
+    async function copyToClip(text, okMsg) {
+        try { await navigator.clipboard.writeText(text); flash(okMsg); }
+        catch (e) {
+            const ta = document.createElement('textarea');
+            ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+            document.body.appendChild(ta); ta.focus(); ta.select();
+            try { document.execCommand('copy'); flash(okMsg); } catch (e2) { flash(text); }
+            document.body.removeChild(ta);
+        }
+    }
+    function copyOrderText() {
+        if (!Object.keys(getOrder()).length) { flash('Nessuna selezione da copiare.'); return; }
+        copyToClip(orderText(), 'Riepilogo copiato negli appunti.');
+    }
+    function copyOrderLink() { copyToClip(orderLink(), 'Link copiato. Aprilo o invialo per ritrovare la selezione.'); }
 
     /* ---- Ricerca (solo sul nome) ---- */
     function filterTable() {
@@ -792,6 +914,9 @@
 
     // stato iniziale steppers (disabilita "−" a 0)
     document.querySelectorAll('.qty').forEach(syncStepper);
+
+    // ripristina la selezione salvata (link condiviso o localStorage)
+    loadSaved();
 </script>
 
 </body>
