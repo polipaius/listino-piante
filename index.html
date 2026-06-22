@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listino Piante Interattivo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #F4F2EC;          /* warm cream page */
+            --card: #FCFBF8;        /* surface */
+            --tint: #F0EDE4;        /* subtle fill / zebra */
+            --ink: #20201E;         /* primary text */
+            --muted: #75726B;       /* secondary text */
+            --line: #E7E3D8;        /* borders */
+            --accent: #C96442;      /* Claude clay */
+            --accent-hover: #AD5132;
+            --accent-tint: #F5E8E1;
+            --dot-h: #6E8B7A;       /* size */
+            --dot-g: #C96442;       /* growth */
+            --dot-o: #7C8B9E;       /* shade */
+            --dot-f: #B07A3C;       /* fruit */
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--ink);
+            margin: 0;
+            padding: 24px 16px 140px;
+            -webkit-font-smoothing: antialiased;
+        }
+        .container {
+            max-width: 1040px;
+            margin: 0 auto;
+            background: var(--card);
+            padding: 32px;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            box-shadow: 0 1px 2px rgba(32,32,30,0.04);
+        }
+        h1 {
+            font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+            font-weight: 600;
+            color: var(--ink);
+            font-size: 30px;
+            letter-spacing: -0.01em;
+            margin: 0 0 6px;
+            text-align: center;
+        }
+        p.subtitle {
+            font-family: 'Source Serif 4', Georgia, serif;
+            text-align: center;
+            color: var(--muted);
+            font-size: 16px;
+            margin: 0 auto 22px;
+            max-width: 640px;
+        }
+
+        /* Intestazione sticky (specchio della barra totali in basso) */
+        .topbar {
+            position: sticky; top: 0; z-index: 1000;
+            background: var(--card);
+            margin: -32px -32px 0;
+            padding: 28px 32px 14px;
+            border-radius: 16px 16px 0 0;
+            border-bottom: 1px solid var(--line);
+            box-shadow: 0 8px 16px -12px rgba(32,32,30,0.18);
+        }
+
+        /* Controls */
+        .search-input {
+            width: 100%;
+            padding: 13px 16px;
+            font-family: inherit;
+            font-size: 15px;
+            color: var(--ink);
+            background: var(--bg);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .search-input::placeholder { color: #A8A49A; }
+        .search-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-tint);
+        }
+
+        .sort-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            margin: 18px 0 6px;
+        }
+        .sort-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--muted);
+            margin-right: 4px;
+        }
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: inherit;
+            font-size: 13.5px;
+            font-weight: 500;
+            color: var(--ink);
+            background: var(--tint);
+            border: 1px solid var(--line);
+            padding: 7px 13px;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .chip:hover { border-color: var(--accent); color: var(--accent); }
+        .chip.active {
+            background: var(--accent-tint);
+            border-color: var(--accent);
+            color: var(--accent-hover);
+        }
+        .chip .badge {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 17px;
+            height: 17px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--card);
+            background: var(--accent);
+            border-radius: 50%;
+        }
+        .chip-clear {
+            background: transparent;
+            color: var(--muted);
+            border-style: dashed;
+        }
+        .chip-clear:hover { color: var(--accent); }
+
+        /* Table */
+        .table-wrap { overflow-x: auto; margin-top: 14px; }
+        table { width: 100%; border-collapse: collapse; min-width: 720px; }
+        th, td {
+            padding: 12px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--line);
+            vertical-align: middle;
+        }
+        thead th {
+            background: var(--tint);
+            color: var(--ink);
+            font-weight: 600;
+            font-size: 13px;
+            border-bottom: 2px solid var(--accent);
+        }
+        thead th small { font-weight: 400; color: var(--muted); }
+        th:nth-child(2), th:nth-child(3), th:nth-child(4),
+        td:nth-child(2), td:nth-child(3), td:nth-child(4) { text-align: center; width: 150px; }
+        tbody tr:hover { background: var(--tint); }
+        td strong {
+            font-family: 'Source Serif 4', Georgia, serif;
+            font-weight: 600;
+            font-size: 16px;
+            color: var(--ink);
+        }
+        td strong.req { color: var(--accent); }
+
+        /* Meta pills under each name */
+        .meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11.5px;
+            color: var(--muted);
+            background: var(--bg);
+            border: 1px solid var(--line);
+            padding: 2px 8px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+        .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+        .dh { background: var(--dot-h); }
+        .dg { background: var(--dot-g); }
+        .do { background: var(--dot-o); }
+        .df { background: var(--dot-f); }
+
+        .empty-cell { color: #C9C5BA; }
+        .size-tag { display: none; } /* visibile solo su mobile (card) */
+
+        /* Quantity stepper */
+        .stepper {
+            display: inline-flex;
+            align-items: center;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            overflow: hidden;
+            background: var(--bg);
+            transition: border-color 0.15s, background 0.15s;
+        }
+        .stepper.active { border-color: var(--accent); background: var(--accent-tint); }
+        .step {
+            width: 28px; height: 32px;
+            border: none; background: transparent;
+            font-size: 17px; font-weight: 500; color: var(--muted);
+            cursor: pointer; line-height: 1;
+            transition: color 0.15s;
+        }
+        .step:hover { color: var(--accent); }
+        .step:disabled { color: #CFCBC0; cursor: default; }
+        .qty {
+            width: 36px; height: 32px;
+            border: none; background: transparent;
+            text-align: center;
+            font-family: inherit; font-size: 14px; font-weight: 500; color: var(--ink);
+            -moz-appearance: textfield;
+        }
+        .stepper.active .qty { color: var(--accent-hover); }
+        .qty::-webkit-outer-spin-button,
+        .qty::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .qty:focus { outline: none; }
+
+        /* Clickable plant name */
+        .plant-name {
+            font-family: 'Source Serif 4', Georgia, serif;
+            font-weight: 600; font-size: 16px; color: var(--ink);
+            background: none; border: none; padding: 0; cursor: pointer;
+            text-align: left; display: inline-flex; align-items: center; gap: 7px;
+            transition: color 0.15s;
+        }
+        .plant-name:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+        .plant-name.req { color: var(--accent); }
+        .pn-ic { color: var(--muted); opacity: 0.55; flex-shrink: 0; transition: color 0.15s, opacity 0.15s; }
+        .plant-name:hover .pn-ic { color: var(--accent); opacity: 1; }
+
+        /* Photo modal */
+        .modal-overlay {
+            position: fixed; inset: 0; z-index: 2000;
+            background: rgba(32,32,30,0.55);
+            display: none; align-items: center; justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-card {
+            background: var(--card); border: 1px solid var(--line);
+            border-radius: 16px; width: 100%; max-width: 520px; max-height: 88vh;
+            overflow: auto; position: relative;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.28);
+        }
+        .modal-close {
+            position: absolute; top: 12px; right: 12px;
+            width: 34px; height: 34px; border: none; border-radius: 50%;
+            background: rgba(255,255,255,0.9); color: var(--ink);
+            font-size: 22px; line-height: 1; cursor: pointer; z-index: 2;
+        }
+        .modal-close:hover { background: var(--accent); color: #fff; }
+        .modal-media {
+            width: 100%; aspect-ratio: 4 / 3; background: var(--tint);
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 16px 16px 0 0; overflow: hidden;
+        }
+        .modal-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .modal-media .ph { color: var(--muted); font-size: 14px; padding: 24px; text-align: center; line-height: 1.5; }
+        .modal-body { padding: 20px 24px 24px; }
+        .modal-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; margin: 0 0 2px; color: var(--ink); }
+        .modal-latin { font-style: italic; color: var(--muted); margin: 0 0 14px; font-size: 15px; }
+        .modal-text { font-size: 14px; line-height: 1.6; color: var(--ink); margin: 14px 0 16px; }
+        .modal-link {
+            display: inline-block; font-size: 13.5px; font-weight: 500;
+            color: var(--accent); text-decoration: none;
+            border: 1px solid var(--accent); padding: 8px 14px; border-radius: 8px;
+            transition: all 0.15s;
+        }
+        .modal-link:hover { background: var(--accent); color: #fff; }
+        .spinner {
+            width: 30px; height: 30px;
+            border: 3px solid var(--line); border-top-color: var(--accent);
+            border-radius: 50%; animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Summary dashboard */
+        .summary-dashboard {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: var(--card);
+            box-shadow: 0 -4px 20px rgba(32,32,30,0.08);
+            border-top: 1px solid var(--line);
+            padding: 14px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            max-width: 1040px;
+            margin: 0 auto;
+            border-radius: 16px 16px 0 0;
+            z-index: 1000;
+        }
+        .summary-item { text-align: center; }
+        .summary-label {
+            font-size: 11px; color: var(--muted);
+            text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px;
+        }
+        .summary-value {
+            font-family: 'Source Serif 4', Georgia, serif;
+            font-size: 20px; font-weight: 600; color: var(--ink);
+        }
+        .summary-value.total { color: var(--accent); font-size: 24px; }
+        .btn-reset {
+            font-family: inherit; font-size: 14px; font-weight: 500;
+            background-color: var(--accent); color: #fff; border: none;
+            padding: 11px 20px; border-radius: 10px; cursor: pointer;
+            transition: background-color 0.15s;
+        }
+        .btn-reset:hover { background-color: var(--accent-hover); }
+
+        /* ---- Mobile: ogni pianta diventa una card ---- */
+        @media (max-width: 720px) {
+            body { padding: 16px 10px 158px; }
+            .container { padding: 18px 14px; border-radius: 14px; }
+            h1 { font-size: 23px; }
+            p.subtitle { font-size: 14px; }
+            .topbar { margin: -18px -14px 0; padding: 16px 14px 12px; }
+            .topbar .subtitle { display: none; } /* spazio prezioso su mobile */
+
+            .table-wrap { overflow-x: visible; }
+            #plantsTable { min-width: 0; }
+            thead { display: none; }
+            #plantsBody, #plantsBody tr, #plantsTable td { display: block; }
+            #plantsBody tr {
+                display: flex; flex-wrap: wrap; gap: 12px 6px;
+                border: 1px solid var(--line); border-radius: 14px;
+                background: var(--card); padding: 14px; margin-bottom: 12px;
+            }
+            #plantsBody tr:hover { background: var(--card); }
+            #plantsTable td { border-bottom: none; padding: 0; width: auto; text-align: left; }
+            #plantsTable td:first-child { flex: 0 0 100%; }
+            #plantsTable td.qcell {
+                flex: 1 1 0; min-width: 0; text-align: center;
+                display: flex; flex-direction: column; align-items: center; gap: 6px;
+            }
+            #plantsTable td.qcell.na { opacity: 0.45; }
+            .size-tag { display: flex; flex-direction: column; line-height: 1.25; }
+            .size-tag b { font-size: 12px; font-weight: 600; color: var(--ink); }
+            .size-tag i { font-size: 10.5px; font-style: normal; color: var(--muted); }
+            .plant-name { font-size: 17px; }
+            .stepper .step { width: 26px; height: 30px; font-size: 16px; }
+            .qty { width: 30px; height: 30px; }
+
+            .summary-dashboard { padding: 10px 14px; gap: 6px 10px; border-radius: 14px 14px 0 0; }
+            .summary-label { font-size: 10px; margin-bottom: 1px; }
+            .summary-value { font-size: 16px; }
+            .summary-value.total { font-size: 18px; }
+            .btn-reset { padding: 9px 14px; font-size: 13px; }
+
+            .modal-card { max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="topbar">
+    <h1>Listino Prezzi Piante Interattivo</h1>
+    <p class="subtitle">Seleziona le varianti desiderate per calcolare il totale in tempo reale (IVA 10% inclusa). Ordina per più criteri insieme: clicca i filtri nell'ordine di priorità.</p>
+
+    <input type="text" id="searchInput" class="search-input" placeholder="Cerca una specie o varietà..." onkeyup="filterTable()">
+
+    <div class="sort-bar">
+        <span class="sort-label">Ordina:</span>
+        <button class="chip" data-key="name" onclick="toggleSort('name')"><span class="badge"></span>A–Z</button>
+        <button class="chip" data-key="h" onclick="toggleSort('h')"><span class="badge"></span>Più grandi</button>
+        <button class="chip" data-key="g" onclick="toggleSort('g')"><span class="badge"></span>Più veloci</button>
+        <button class="chip" data-key="o" onclick="toggleSort('o')"><span class="badge"></span>Più ombra</button>
+        <button class="chip" data-key="f" onclick="toggleSort('f')"><span class="badge"></span>Più frutta</button>
+        <button class="chip chip-clear" onclick="clearSort()">Azzera ordine</button>
+    </div>
+    </div><!-- /topbar -->
+
+    <div class="table-wrap">
+        <table id="plantsTable">
+            <thead>
+                <tr>
+                    <th>Specie / Varietà</th>
+                    <th>In contenitore fino a 1 l<br><small>€ 2,00 (escl. IVA)</small></th>
+                    <th>In contenitore fino a 3 l<br><small>€ 3,60 (escl. IVA)</small></th>
+                    <th>Trapianti 2-3 anni / fino a 20 l<br><small>€ 22,00 (escl. IVA)</small></th>
+                </tr>
+            </thead>
+            <tbody id="plantsBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<div class="summary-dashboard">
+    <div class="summary-item">
+        <div class="summary-label">Piante</div>
+        <div class="summary-value" id="count">0</div>
+    </div>
+    <div class="summary-item">
+        <div class="summary-label">Totale Imponibile</div>
+        <div class="summary-value" id="subtotal">€ 0,00</div>
+    </div>
+    <div class="summary-item">
+        <div class="summary-label">IVA (10%)</div>
+        <div class="summary-value" id="iva">€ 0,00</div>
+    </div>
+    <div class="summary-item">
+        <div class="summary-label">Totale con IVA</div>
+        <div class="summary-value total" id="total">€ 0,00</div>
+    </div>
+    <button class="btn-reset" onclick="resetSelection()">Azzera selezione</button>
+</div>
+
+<!-- Modale foto / scheda specie -->
+<div id="modal" class="modal-overlay" onclick="onOverlayClick(event)">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="mName">
+        <button class="modal-close" onclick="closeModal()" aria-label="Chiudi">×</button>
+        <div class="modal-media" id="mMedia"></div>
+        <div class="modal-body">
+            <h2 class="modal-title" id="mName"></h2>
+            <p class="modal-latin" id="mLatin"></p>
+            <div class="meta" id="mMeta"></div>
+            <p class="modal-text" id="mText"></p>
+            <a class="modal-link" id="mLink" href="#" target="_blank" rel="noopener">Apri su Wikipedia</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    /* ---- Dati botanici reali ----
+       c1/c3/c20 = disponibilità contenitore (1l €2,00 / 3l €3,60 / 20l €22,00)
+       h  = altezza a maturità in metri (indicativa)
+       g  = velocità di crescita  1=lenta 2=media 3=rapida
+       o  = tolleranza all'ombra  1=pieno sole 2=mezz'ombra 3=ombra
+       f  = fruttificazione       0=assente 1=bacche/ornamentale 2=frutto edule  */
+    const PLANTS = [
+        {n:"Abelia cephalonica", c1:0,c3:0,c20:1, h:2,   g:2,o:2,f:0},
+        {n:"Abete greco", c1:1,c3:0,c20:0, h:30,  g:1,o:3,f:0},
+        {n:"Acero campestre", c1:0,c3:1,c20:0, h:15,  g:2,o:2,f:0},
+        {n:"Acero minore", c1:0,c3:0,c20:1, h:10,  g:1,o:2,f:0},
+        {n:"Acero montano", c1:0,c3:1,c20:0, h:30,  g:3,o:3,f:0},
+        {n:"Acero negundo", c1:0,c3:0,c20:1, h:20,  g:3,o:2,f:0},
+        {n:"Acero opalo", c1:0,c3:0,c20:1, h:20,  g:1,o:2,f:0},
+        {n:"Acero riccio", c1:0,c3:1,c20:0, h:30,  g:3,o:3,f:0},
+        {n:"Agrifoglio", c1:0,c3:0,c20:0, h:10,  g:1,o:3,f:1},
+        {n:"Alaterno", c1:0,c3:0,c20:1, h:5,   g:2,o:2,f:1},
+        {n:"Albero di giuda", c1:0,c3:0,c20:1, h:10,  g:2,o:1,f:0},
+        {n:"Alloro", c1:0,c3:0,c20:1, h:12,  g:2,o:3,f:1},
+        {n:"Bagolaro", c1:0,c3:1,c20:1, h:25,  g:2,o:2,f:2},
+        {n:"Betulla", c1:0,c3:0,c20:0, h:25,  g:3,o:1,f:0},
+        {n:"Biancospino", c1:0,c3:1,c20:1, h:8,   g:2,o:2,f:2},
+        {n:"Bosso", c1:0,c3:0,c20:1, h:5,   g:1,o:3,f:0},
+        {n:"Camedrio", c1:0,c3:1,c20:1, h:0.4, g:1,o:1,f:0},
+        {n:"Carpino bianco", c1:0,c3:0,c20:1, h:20,  g:2,o:3,f:0},
+        {n:"Carpino nero", c1:0,c3:0,c20:1, h:18,  g:2,o:2,f:0},
+        {n:"Castagno", c1:0,c3:0,c20:1, h:30,  g:2,o:2,f:2},
+        {n:"Cedro del Libano", c1:1,c3:1,c20:1, h:40,  g:1,o:1,f:0},
+        {n:"Cedro dell'Atlante", c1:1,c3:1,c20:1, h:40,  g:2,o:1,f:0},
+        {n:"Cedro dell'Himalaya", c1:0,c3:0,c20:1, h:50,  g:3,o:2,f:0},
+        {n:"Cerro", c1:0,c3:1,c20:1, h:35,  g:3,o:1,f:1},
+        {n:"Ciliegio selvatico", c1:1,c3:1,c20:1, h:25,  g:3,o:2,f:2},
+        {n:"Cipresso comune", c1:1,c3:1,c20:1, h:30,  g:2,o:1,f:0},
+        {n:"Cipresso dell'Arizona", c1:1,c3:1,c20:1, h:25,  g:3,o:1,f:0},
+        {n:"Cipresso di Monterey", c1:1,c3:1,c20:0, h:30,  g:3,o:1,f:0},
+        {n:"Cisto rosso", c1:0,c3:0,c20:1, h:1,   g:3,o:1,f:0},
+        {n:"Corbezzolo", c1:0,c3:0,c20:1, h:8,   g:1,o:2,f:2},
+        {n:"Cornetta dondolina", c1:0,c3:1,c20:1, h:2,   g:2,o:2,f:0},
+        {n:"Corniolo", c1:0,c3:1,c20:1, h:7,   g:1,o:2,f:2},
+        {n:"Cotognastro foglia di salice", c1:0,c3:1,c20:1, h:4,   g:2,o:2,f:1},
+        {n:"Cotognastro orizzontale", c1:0,c3:0,c20:1, h:1,   g:2,o:2,f:1},
+        {n:"Crespino", c1:0,c3:1,c20:1, h:3,   g:2,o:2,f:2},
+        {n:"Evonimo europeo", c1:0,c3:0,c20:1, h:6,   g:2,o:3,f:1},
+        {n:"Faggio", c1:0,c3:1,c20:0, h:35,  g:2,o:3,f:1},
+        {n:"Frassino maggiore", c1:0,c3:1,c20:1, h:35,  g:3,o:2,f:0},
+        {n:"Gelso bianco", c1:0,c3:1,c20:0, h:15,  g:3,o:1,f:2},
+        {n:"Gelso nero", c1:0,c3:1,c20:1, h:12,  g:2,o:1,f:2},
+        {n:"Ginepro comune", c1:1,c3:0,c20:1, h:6,   g:1,o:1,f:2},
+        {n:"Ginestra", c1:0,c3:1,c20:0, h:3,   g:3,o:1,f:0},
+        {n:"Ginko biloba", c1:0,c3:0,c20:0, h:35,  g:2,o:2,f:1},
+        {n:"Ippocastano", c1:0,c3:0,c20:0, h:30,  g:2,o:2,f:1},
+        {n:"Katsura", c1:0,c3:0,c20:0, h:20,  g:2,o:2,f:0},
+        {n:"Lauroceraso", c1:1,c3:0,c20:1, h:6,   g:3,o:3,f:1},
+        {n:"Lavanda angustifolia", c1:0,c3:0,c20:0, h:0.6, g:2,o:1,f:0},
+        {n:"Leccio", c1:0,c3:1,c20:1, h:25,  g:1,o:3,f:1},
+        {n:"Ligustro cinese", c1:0,c3:0,c20:1, h:10,  g:3,o:3,f:1},
+        {n:"Ligustro giapponese", c1:0,c3:0,c20:1, h:5,   g:2,o:3,f:1},
+        {n:"Ligustro volgare", c1:0,c3:0,c20:1, h:4,   g:3,o:3,f:1},
+        {n:"Lillà", c1:1,c3:0,c20:0, h:5,   g:2,o:2,f:0},
+        {n:"Maggiociondolo", c1:0,c3:1,c20:0, h:7,   g:2,o:2,f:0},
+        {n:"Mahonia", c1:0,c3:0,c20:1, h:2,   g:1,o:3,f:2},
+        {n:"Melo selvatico", c1:0,c3:1,c20:0, h:10,  g:2,o:2,f:2},
+        {n:"Melograno", c1:0,c3:0,c20:1, h:5,   g:2,o:1,f:2},
+        {n:"Melograno nano", c1:0,c3:0,c20:1, h:1,   g:1,o:1,f:1},
+        {n:"Nocciolo", c1:0,c3:1,c20:1, h:6,   g:3,o:3,f:2},
+        {n:"Olivello spinoso", c1:0,c3:0,c20:1, h:5,   g:3,o:1,f:2},
+        {n:"Olmo siberiano", c1:0,c3:1,c20:1, h:20,  g:3,o:2,f:0},
+        {n:"Ontano", c1:0,c3:0,c20:0, h:25,  g:3,o:2,f:0},
+        {n:"Orniello", c1:0,c3:1,c20:0, h:12,  g:2,o:2,f:0},
+        {n:"Pino d'Aleppo", c1:0,c3:0,c20:1, h:20,  g:3,o:1,f:0},
+        {n:"Pino domestico", c1:0,c3:1,c20:1, h:25,  g:2,o:1,f:2},
+        {n:"Pioppo cipressino", c1:1,c3:1,c20:1, h:30,  g:3,o:1,f:0},
+        {n:"Piracanta/Agazzino", c1:0,c3:0,c20:1, h:4,   g:3,o:2,f:1},
+        {n:"Platano", c1:1,c3:1,c20:0, h:35,  g:3,o:2,f:0},
+        {n:"Prugnolo selvatico", c1:0,c3:0,c20:1, h:4,   g:2,o:2,f:2},
+        {n:"Farnia", c1:0,c3:0,c20:1, h:35,  g:2,o:2,f:1},
+        {n:"Quercia da sughero", c1:1,c3:1,c20:1, h:20,  g:1,o:2,f:1},
+        {n:"Robinia", c1:0,c3:0,c20:1, h:25,  g:3,o:1,f:0},
+        {n:"Rosa canina", c1:0,c3:1,c20:1, h:3,   g:3,o:2,f:2},
+        {n:"Rosa rugosa", c1:0,c3:1,c20:1, h:2,   g:3,o:2,f:2},
+        {n:"Rosmarino officinale", c1:0,c3:0,c20:1, h:1.5, g:2,o:1,f:0},
+        {n:"Rosmarino prostrato", c1:0,c3:0,c20:1, h:0.3, g:2,o:1,f:0},
+        {n:"Roverella", c1:0,c3:1,c20:0, h:20,  g:1,o:1,f:1},
+        {n:"Salice piangente", c1:1,c3:1,c20:1, h:20,  g:3,o:2,f:0},
+        {n:"Scotano", c1:0,c3:0,c20:1, h:5,   g:2,o:1,f:0},
+        {n:"Sorbo ciavardello", c1:0,c3:1,c20:1, h:25,  g:1,o:2,f:2},
+        {n:"Sorbo degli uccellatori", c1:0,c3:0,c20:1, h:15,  g:2,o:2,f:2},
+        {n:"Sorbo domestico", c1:0,c3:0,c20:1, h:20,  g:1,o:2,f:2},
+        {n:"Sorbo montano", c1:0,c3:0,c20:1, h:15,  g:1,o:2,f:1},
+        {n:"Terebinto", c1:1,c3:0,c20:1, h:6,   g:1,o:1,f:1},
+        {n:"Tiglio selvatico", c1:1,c3:0,c20:0, h:30,  g:2,o:3,f:0},
+        {n:"Viburno opalo", c1:0,c3:1,c20:1, h:4,   g:2,o:3,f:1},
+        {n:"Viburno tino", c1:1,c3:0,c20:1, h:3,   g:2,o:3,f:1}
+    ];
+
+    const PRICES = { c1: 2.0, c3: 3.6, c20: 22.0 };
+    const SIZE = { c1: { l: '1 l', p: '€ 2,00' }, c3: { l: '3 l', p: '€ 3,60' }, c20: { l: '20 l', p: '€ 22,00' } };
+    const G_LABEL = ["", "crescita lenta", "crescita media", "crescita rapida"];
+    const O_LABEL = ["", "pieno sole", "mezz'ombra", "ombra"];
+    const F_LABEL = ["senza frutto", "bacche", "frutto edule"];
+    // Generi richiesti dal cliente: evidenziati in accent
+    const REQ = ["Acero","Ippocastano","Ontano","Betulla","Carpino","Katsura","Nocciolo","Faggio","Frassino","Pioppo","Salice","Olmo"];
+
+    // Nome scientifico per ogni specie (per recuperare foto/scheda da Wikipedia)
+    const LATIN = {
+        "Abelia cephalonica":"Abelia", "Abete greco":"Abies cephalonica",
+        "Acero campestre":"Acer campestre", "Acero minore":"Acer monspessulanum",
+        "Acero montano":"Acer pseudoplatanus", "Acero negundo":"Acer negundo",
+        "Acero opalo":"Acer opalus", "Acero riccio":"Acer platanoides",
+        "Agrifoglio":"Ilex aquifolium", "Alaterno":"Rhamnus alaternus",
+        "Albero di giuda":"Cercis siliquastrum", "Alloro":"Laurus nobilis",
+        "Bagolaro":"Celtis australis", "Betulla":"Betula pendula",
+        "Biancospino":"Crataegus monogyna", "Bosso":"Buxus sempervirens",
+        "Camedrio":"Teucrium chamaedrys", "Carpino bianco":"Carpinus betulus",
+        "Carpino nero":"Ostrya carpinifolia", "Castagno":"Castanea sativa",
+        "Cedro del Libano":"Cedrus libani", "Cedro dell'Atlante":"Cedrus atlantica",
+        "Cedro dell'Himalaya":"Cedrus deodara", "Cerro":"Quercus cerris",
+        "Ciliegio selvatico":"Prunus avium", "Cipresso comune":"Cupressus sempervirens",
+        "Cipresso dell'Arizona":"Cupressus arizonica", "Cipresso di Monterey":"Cupressus macrocarpa",
+        "Cisto rosso":"Cistus creticus", "Corbezzolo":"Arbutus unedo",
+        "Cornetta dondolina":"Coronilla emerus", "Corniolo":"Cornus mas",
+        "Cotognastro foglia di salice":"Cotoneaster salicifolius", "Cotognastro orizzontale":"Cotoneaster horizontalis",
+        "Crespino":"Berberis vulgaris", "Evonimo europeo":"Euonymus europaeus",
+        "Faggio":"Fagus sylvatica", "Frassino maggiore":"Fraxinus excelsior",
+        "Gelso bianco":"Morus alba", "Gelso nero":"Morus nigra",
+        "Ginepro comune":"Juniperus communis", "Ginestra":"Spartium junceum",
+        "Ginko biloba":"Ginkgo biloba", "Ippocastano":"Aesculus hippocastanum",
+        "Katsura":"Cercidiphyllum japonicum", "Lauroceraso":"Prunus laurocerasus",
+        "Lavanda angustifolia":"Lavandula angustifolia", "Leccio":"Quercus ilex",
+        "Ligustro cinese":"Ligustrum lucidum", "Ligustro giapponese":"Ligustrum japonicum",
+        "Ligustro volgare":"Ligustrum vulgare", "Lillà":"Syringa vulgaris",
+        "Maggiociondolo":"Laburnum anagyroides", "Mahonia":"Mahonia aquifolium",
+        "Melo selvatico":"Malus sylvestris", "Melograno":"Punica granatum",
+        "Melograno nano":"Punica granatum", "Nocciolo":"Corylus avellana",
+        "Olivello spinoso":"Hippophae rhamnoides", "Olmo siberiano":"Ulmus pumila",
+        "Ontano":"Alnus glutinosa", "Orniello":"Fraxinus ornus",
+        "Pino d'Aleppo":"Pinus halepensis", "Pino domestico":"Pinus pinea",
+        "Pioppo cipressino":"Populus nigra", "Piracanta/Agazzino":"Pyracantha coccinea",
+        "Platano":"Platanus hispanica", "Prugnolo selvatico":"Prunus spinosa",
+        "Farnia":"Quercus robur", "Quercia da sughero":"Quercus suber",
+        "Robinia":"Robinia pseudoacacia", "Rosa canina":"Rosa canina",
+        "Rosa rugosa":"Rosa rugosa", "Rosmarino officinale":"Rosmarinus officinalis",
+        "Rosmarino prostrato":"Rosmarinus officinalis", "Roverella":"Quercus pubescens",
+        "Salice piangente":"Salix babylonica", "Scotano":"Cotinus coggygria",
+        "Sorbo ciavardello":"Sorbus torminalis", "Sorbo degli uccellatori":"Sorbus aucuparia",
+        "Sorbo domestico":"Sorbus domestica", "Sorbo montano":"Sorbus aria",
+        "Terebinto":"Pistacia terebinthus", "Tiglio selvatico":"Tilia cordata",
+        "Viburno opalo":"Viburnum opulus", "Viburno tino":"Viburnum tinus"
+    };
+
+    function cell(avail, key) {
+        const tag = '<span class="size-tag"><b>' + SIZE[key].l + '</b><i>' + SIZE[key].p + '</i></span>';
+        if (!avail) return '<td class="qcell na">' + tag + '<span class="empty-cell">–</span></td>';
+        return '<td class="qcell">' + tag + '<div class="stepper">' +
+            '<button type="button" class="step" onclick="changeQty(this,-1)">−</button>' +
+            '<input type="number" class="qty" data-price="' + PRICES[key] + '" min="0" value="0" inputmode="numeric" oninput="onQtyInput(this)">' +
+            '<button type="button" class="step" onclick="changeQty(this,1)">+</button>' +
+        '</div></td>';
+    }
+
+    function meta(p) {
+        return '<div class="meta">' +
+            '<span class="pill" title="Altezza a maturità"><i class="dot dh"></i>' + p.h + ' m</span>' +
+            '<span class="pill" title="Velocità di crescita"><i class="dot dg"></i>' + G_LABEL[p.g] + '</span>' +
+            '<span class="pill" title="Tolleranza all\'ombra"><i class="dot do"></i>' + O_LABEL[p.o] + '</span>' +
+            '<span class="pill" title="Fruttificazione"><i class="dot df"></i>' + F_LABEL[p.f] + '</span>' +
+        '</div>';
+    }
+
+    const tbody = document.getElementById('plantsBody');
+    PLANTS.forEach((p, i) => {
+        const tr = document.createElement('tr');
+        tr.dataset.index = i;
+        tr.dataset.name = p.n;
+        tr.dataset.h = p.h;
+        tr.dataset.g = p.g;
+        tr.dataset.o = p.o;
+        tr.dataset.f = p.f;
+        const req = REQ.some(r => p.n.indexOf(r) > -1);
+        const icon = '<svg class="pn-ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>';
+        tr.innerHTML =
+            '<td><button type="button" class="plant-name ' + (req ? 'req' : '') + '" title="Mostra foto e scheda" onclick="openPlant(' + i + ')">' + p.n + icon + '</button>' + meta(p) + '</td>' +
+            cell(p.c1, 'c1') + cell(p.c3, 'c3') + cell(p.c20, 'c20');
+        tbody.appendChild(tr);
+    });
+
+    /* ---- Ordinamento multi-criterio ---- */
+    let sortKeys = []; // ordine di priorità
+
+    function toggleSort(key) {
+        const i = sortKeys.indexOf(key);
+        if (i > -1) sortKeys.splice(i, 1); else sortKeys.push(key);
+        applySort();
+        renderChips();
+    }
+    function clearSort() { sortKeys = []; applySort(); renderChips(); }
+
+    function compare(a, b, key) {
+        if (key === 'name') return a.dataset.name.localeCompare(b.dataset.name, 'it');
+        // tutti gli altri in discendente: più grandi / più veloci / più ombra / più frutta prima
+        return (+b.dataset[key]) - (+a.dataset[key]);
+    }
+    function applySort() {
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        rows.sort((a, b) => {
+            for (const k of sortKeys) {
+                const c = compare(a, b, k);
+                if (c !== 0) return c;
+            }
+            return a.dataset.index - b.dataset.index; // ordine originale come fallback stabile
+        });
+        rows.forEach(r => tbody.appendChild(r));
+    }
+    function renderChips() {
+        document.querySelectorAll('.chip[data-key]').forEach(chip => {
+            const pos = sortKeys.indexOf(chip.dataset.key);
+            const badge = chip.querySelector('.badge');
+            if (pos > -1) {
+                chip.classList.add('active');
+                badge.textContent = pos + 1;
+                badge.style.display = 'inline-flex';
+            } else {
+                chip.classList.remove('active');
+                badge.style.display = 'none';
+            }
+        });
+    }
+
+    /* ---- Foto / scheda specie (Wikipedia) ---- */
+    const wikiCache = {};
+    let lastFocus = null;
+
+    async function wikiQuery(title, lang) {
+        const url = 'https://' + lang + '.wikipedia.org/w/api.php?action=query&format=json&origin=*' +
+            '&prop=pageimages|extracts&exintro=1&explaintext=1&redirects=1&pithumbsize=640&titles=' +
+            encodeURIComponent(title);
+        try {
+            const res = await fetch(url);
+            const data = await res.json();
+            const page = Object.values(data.query.pages)[0];
+            if (!page || page.missing !== undefined) return null;
+            return { img: page.thumbnail && page.thumbnail.source, extract: page.extract || '', title: page.title, lang: lang };
+        } catch (e) { return null; }
+    }
+
+    async function openPlant(i) {
+        const p = PLANTS[i];
+        const latin = LATIN[p.n] || p.n;
+        lastFocus = document.activeElement;
+
+        document.getElementById('mName').textContent = p.n;
+        document.getElementById('mLatin').textContent = latin;
+        document.getElementById('mMeta').innerHTML = meta(p);
+        document.getElementById('mText').textContent = '';
+        const link = document.getElementById('mLink');
+        link.textContent = 'Apri su Wikipedia';
+        link.style.display = 'none';
+        const media = document.getElementById('mMedia');
+        media.innerHTML = '<div class="spinner"></div>';
+        document.getElementById('modal').classList.add('open');
+        document.body.style.overflow = 'hidden';
+
+        let info = wikiCache[latin];
+        if (info === undefined) {
+            info = await wikiQuery(latin, 'it');
+            if (!info || !info.img) { const en = await wikiQuery(latin, 'en'); if (en && en.img) info = en; else info = info || en; }
+            if (!info || !info.img) { const it2 = await wikiQuery(p.n, 'it'); if (it2 && it2.img) info = it2; else info = info || it2; }
+            wikiCache[latin] = info;
+        }
+
+        // l'utente potrebbe aver chiuso o aperto un'altra scheda nel frattempo
+        if (document.getElementById('mName').textContent !== p.n) return;
+
+        if (info && info.img) {
+            media.innerHTML = '<img src="' + info.img + '" alt="' + p.n + '">';
+        } else {
+            media.innerHTML = '<div class="ph">Foto non disponibile al momento.<br>Apri la scheda per vedere le immagini.</div>';
+        }
+        if (info) {
+            if (info.extract) {
+                const t = info.extract.trim();
+                document.getElementById('mText').textContent = t.length > 360 ? t.slice(0, 360).trim() + '…' : t;
+            }
+            link.href = 'https://' + info.lang + '.wikipedia.org/wiki/' + encodeURIComponent(info.title.replace(/ /g, '_'));
+        } else {
+            link.href = 'https://it.wikipedia.org/w/index.php?search=' + encodeURIComponent(latin);
+            link.textContent = 'Cerca su Wikipedia';
+        }
+        link.style.display = 'inline-block';
+    }
+
+    function closeModal() {
+        document.getElementById('modal').classList.remove('open');
+        document.body.style.overflow = '';
+        if (lastFocus) lastFocus.focus();
+    }
+    function onOverlayClick(e) { if (e.target.id === 'modal') closeModal(); }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+    /* ---- Quantità ---- */
+    function syncStepper(input) {
+        const q = parseInt(input.value, 10) || 0;
+        const stepper = input.closest('.stepper');
+        stepper.classList.toggle('active', q > 0);
+        stepper.querySelector('.step').disabled = q <= 0; // disabilita "−" a 0
+    }
+    function onQtyInput(input) {
+        let q = parseInt(input.value, 10);
+        if (isNaN(q) || q < 0) q = 0;
+        if (input.value !== '') input.value = q;
+        syncStepper(input);
+        calculateTotal();
+    }
+    function changeQty(btn, delta) {
+        const input = btn.parentNode.querySelector('.qty');
+        let q = (parseInt(input.value, 10) || 0) + delta;
+        if (q < 0) q = 0;
+        input.value = q;
+        syncStepper(input);
+        calculateTotal();
+    }
+
+    /* ---- Totali ---- */
+    function calculateTotal() {
+        let subtotal = 0, items = 0;
+        document.querySelectorAll('.qty').forEach(inp => {
+            const q = parseInt(inp.value, 10) || 0;
+            if (q > 0) {
+                subtotal += q * parseFloat(inp.dataset.price);
+                items += q;
+            }
+        });
+        const iva = subtotal * 0.10;
+        const total = subtotal + iva;
+        const fmt = n => '€ ' + n.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.getElementById('count').innerText = items;
+        document.getElementById('subtotal').innerText = fmt(subtotal);
+        document.getElementById('iva').innerText = fmt(iva);
+        document.getElementById('total').innerText = fmt(total);
+    }
+
+    /* ---- Ricerca (solo sul nome) ---- */
+    function filterTable() {
+        const f = document.getElementById('searchInput').value.toLowerCase();
+        tbody.querySelectorAll('tr').forEach(tr => {
+            tr.style.display = tr.dataset.name.toLowerCase().indexOf(f) > -1 ? '' : 'none';
+        });
+    }
+
+    /* ---- Reset selezione ---- */
+    function resetSelection() {
+        document.querySelectorAll('.qty').forEach(inp => { inp.value = 0; syncStepper(inp); });
+        calculateTotal();
+    }
+
+    // stato iniziale steppers (disabilita "−" a 0)
+    document.querySelectorAll('.qty').forEach(syncStepper);
+</script>
+
+</body>
+</html>
