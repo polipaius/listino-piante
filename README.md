@@ -14,9 +14,8 @@ Tutto si modifica in `index.html`, nella parte `<script>`:
 1. **`CONFIG`**: nome e luogo del vivaio, aliquota IVA, formati e prezzi, email e WhatsApp per
    le richieste, vivai tra cui scegliere il ritiro. Se più listini stanno sullo stesso dominio,
    dai a ciascuno un `id` diverso.
-2. **`CONFIG.demo`**: copertina e pannello "Proposta" usati per presentare l'app a un vivaio
-   (nota personale, vantaggi, offerta con prezzi, contatti). Con `attiva: false` spariscono e
-   resta solo il listino.
+2. **`CONFIG.demo`**: copertina animata all'apertura, nota "demo non ufficiale" e `[DEMO]`
+   nell'oggetto delle email. Con `attiva: false` resta il listino definitivo.
 3. **`PLANTS`**: una riga per specie. `c1`, `c3`, `c20` (le chiavi di `CONFIG.formati`) valgono
    `1` se il formato è disponibile, `0` se no. `h` = altezza in metri, `g` = crescita (1-3),
    `o` = ombra (1-3), `f` = frutti (0-2).

@@ -8,24 +8,27 @@
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231F3D33'/%3E%3Cpath d='M16 26V14' stroke='%23CFE29A' stroke-width='2.4' stroke-linecap='round'/%3E%3Cpath d='M16 16c0-5 3-8 8-8 0 5-3 8-8 8zM16 18c0-4-3-6.5-7-6.5 0 4 3 6.5 7 6.5z' fill='%23CFE29A'/%3E%3C/svg%3E">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
         :root {
             --bosco: #1F3D33;       /* abete: marchio, intestazione, azioni */
             --bosco-2: #2B5144;
-            --bosco-3: #163029;
             --muschio: #5E7B4F;     /* icone, bordi attivi */
             --germoglio: #CFE29A;   /* piantina scelta */
             --germoglio-2: #EDF4D6;
             --corteccia: #7A5A43;
-            --carta: #F3F5F0;
-            --card: #FFFFFF;
+            --carta: #F2F5EE;
+            --card: #FCFDFA;
+            --chiaro: #F5F8F0;      /* testo chiaro su verde, mai bianco puro */
             --ink: #18231E;
             --muted: #5B6861;
             --line: #DCE2DA;
             --err: #B3261E;
-            --serif: 'Newsreader', Georgia, 'Times New Roman', serif;
+            --serif: 'Libre Caslon Text', Georgia, 'Times New Roman', serif;
             --sans: 'Fira Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            --ease-out: cubic-bezier(.16, 1, .3, 1);    /* entrate */
+            --ease-quart: cubic-bezier(.25, 1, .5, 1);  /* micro-interazioni */
+            --ease-in: cubic-bezier(.7, 0, .84, 0);     /* uscite */
         }
         * { box-sizing: border-box; }
         html { -webkit-text-size-adjust: 100%; }
@@ -52,27 +55,27 @@
         /* ---- Intestazione ---- */
         .top {
             position: sticky; top: 0; z-index: 50;
-            background: var(--bosco); color: #fff;
+            background: var(--bosco); color: var(--chiaro);
             padding: calc(14px + env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 12px max(16px, env(safe-area-inset-left));
         }
         .top-in { max-width: 1120px; margin: 0 auto; }
-        .brand-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
-        .brand { margin: 0; min-width: 0; }
-        .brand-name { display: block; font-family: var(--serif); font-weight: 600; font-size: 22px; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .brand-place { display: block; font-size: 14px; font-weight: 400; color: rgba(255,255,255,.72); margin-top: 2px; }
-        .demo-pill {
-            flex-shrink: 0; min-height: 44px; padding: 0 16px; border-radius: 999px;
-            border: 1px solid rgba(255,255,255,.4); background: transparent; color: #fff;
-            font-size: 15px; font-weight: 500; white-space: nowrap;
+        .brand { margin: 0 0 12px; min-width: 0; font-size: inherit; font-weight: inherit; }
+        .brand-btn {
+            display: block; max-width: 100%; min-height: 44px; padding: 0; border: 0; background: none;
+            color: inherit; text-align: left; cursor: default;
         }
-        .demo-pill:hover { background: rgba(255,255,255,.1); }
+        .brand-btn.link { cursor: pointer; }
+        .brand-name { display: block; font-family: var(--serif); font-weight: 700; font-size: 22px; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .brand-place { display: block; font-size: 14px; color: rgba(245,248,240,.72); margin-top: 2px; }
         .search { position: relative; display: block; }
         .search svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
         .search input {
             width: 100%; height: 48px; padding: 0 14px 0 44px;
             font: inherit; font-size: 16px; color: var(--ink);
-            background: #fff; border: 0; border-radius: 12px;
+            background: var(--card); border: 0; border-radius: 12px;
+            transition: box-shadow .2s var(--ease-quart);
         }
+        .search input:focus { outline: none; box-shadow: 0 0 0 3px var(--germoglio); }
         .search input::placeholder { color: #737E78; }
         .chips {
             display: flex; align-items: center; gap: 8px;
@@ -84,20 +87,20 @@
         .chip {
             flex-shrink: 0; display: inline-flex; align-items: center; gap: 8px;
             min-height: 44px; padding: 0 16px; border-radius: 999px;
-            border: 1px solid rgba(255,255,255,.3); background: transparent; color: #fff;
+            border: 1px solid rgba(245,248,240,.3); background: transparent; color: var(--chiaro);
             font-size: 15px; font-weight: 500; white-space: nowrap;
-            transition: background .15s, color .15s, border-color .15s;
+            transition: background .2s var(--ease-quart), color .2s var(--ease-quart), border-color .2s var(--ease-quart), transform .12s var(--ease-quart);
         }
-        .chip:hover { border-color: rgba(255,255,255,.65); }
+        .chip:hover { border-color: rgba(245,248,240,.65); }
         .chip[aria-pressed="true"] { background: var(--germoglio); border-color: var(--germoglio); color: var(--bosco); }
         .chip .badge {
             display: none; align-items: center; justify-content: center;
             width: 20px; height: 20px; border-radius: 50%;
             background: var(--bosco); color: var(--germoglio); font-size: 12px; font-weight: 600;
         }
-        .chip .badge:not(:empty) { display: inline-flex; }
-        .chips-sep { flex: 0 0 1px; align-self: stretch; margin: 8px 4px; background: rgba(255,255,255,.25); }
-        .chips-label { flex-shrink: 0; font-size: 14px; color: rgba(255,255,255,.72); }
+        .chip .badge:not(:empty) { display: inline-flex; animation: pop .25s var(--ease-out); }
+        .chips-sep { flex: 0 0 1px; align-self: stretch; margin: 8px 4px; background: rgba(245,248,240,.25); }
+        .chips-label { flex-shrink: 0; font-size: 14px; color: rgba(245,248,240,.72); }
         @media (min-width: 900px) {
             .chips { flex-wrap: wrap; overflow: visible; margin: 12px 0 0; padding: 0; }
         }
@@ -122,18 +125,23 @@
             width: 72px; height: 72px; padding: 0; border: 0; border-radius: 12px; overflow: hidden;
             background: var(--germoglio-2); color: var(--muschio);
             display: flex; align-items: center; justify-content: center;
+            transition: transform .12s var(--ease-quart);
         }
-        .thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .35s; }
-        .thumb img.ok { opacity: 1; }
+        .thumb img {
+            position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+            opacity: 0; transform: scale(1.12);
+            transition: opacity .5s var(--ease-out), transform .9s var(--ease-out);
+        }
+        .thumb img.ok { opacity: 1; transform: none; }
         .card.none .thumb { filter: grayscale(.7); opacity: .75; }
-        .card-name { margin: 0; font-family: var(--serif); font-weight: 600; font-size: 21px; line-height: 1.15; }
+        .card-name { margin: 0; font-family: var(--serif); font-weight: 700; font-size: 20px; line-height: 1.2; }
         .name-btn {
             display: inline-block; padding: 10px 0; margin: -10px 0; /* area tap 44px senza spostare il layout */
             min-width: 44px; border: 0; background: none; font: inherit; color: var(--ink); text-align: left;
         }
         .name-btn:hover { color: var(--muschio); text-decoration: underline; text-underline-offset: 3px; }
         .name-btn.req { color: var(--corteccia); }
-        .latin { margin: 3px 0 0; font-family: var(--serif); font-style: italic; font-size: 16px; color: var(--muted); }
+        .latin { margin: 3px 0 0; font-family: var(--serif); font-style: italic; font-size: 15.5px; color: var(--muted); }
         .traits { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 14px; color: var(--muted); }
         .traits li { display: inline-flex; align-items: center; gap: 5px; }
         .traits svg { flex-shrink: 0; color: var(--muschio); }
@@ -148,12 +156,13 @@
         .stepper {
             display: inline-flex; align-items: center; flex-shrink: 0;
             border: 1px solid var(--line); border-radius: 12px; background: var(--carta);
-            transition: background .15s, border-color .15s;
+            transition: background .25s var(--ease-quart), border-color .25s var(--ease-quart);
         }
         .stepper.on { background: var(--germoglio-2); border-color: var(--muschio); }
         .step {
             width: 44px; height: 44px; border: 0; border-radius: 11px; background: transparent;
             font-size: 22px; line-height: 1; color: var(--bosco);
+            transition: background .15s var(--ease-quart), transform .12s var(--ease-quart);
         }
         .step:hover { background: rgba(31,61,51,.07); }
         .step:disabled { color: #B3BCB6; background: transparent; cursor: default; }
@@ -164,7 +173,8 @@
         }
         .qty::-webkit-inner-spin-button, .qty::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         .stepper.on .qty { color: var(--bosco); }
-        .empty { text-align: center; color: var(--muted); padding: 40px 16px; margin: 0; }
+        .empty { text-align: center; color: var(--muted); padding: 36px 16px; margin: 0; }
+        .empty svg { display: block; margin: 0 auto 10px; color: var(--muschio); transform-origin: 50% 100%; animation: sway 4.5s ease-in-out infinite; }
         .foot { margin: 36px 2px 0; max-width: 72ch; font-size: 14px; line-height: 1.6; color: var(--muted); }
         .foot p { margin: 0 0 8px; }
 
@@ -178,46 +188,55 @@
         .bar-in { max-width: 1120px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
         .bar-sum { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
         .bar-count { font-size: 14px; color: var(--muted); }
-        .bar-total { font-family: var(--serif); font-size: 24px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .bar-total { display: inline-block; transform-origin: 0 60%; font-family: var(--serif); font-size: 23px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
         .bar-total small { font-family: var(--sans); font-size: 13px; font-weight: 400; color: var(--muted); margin-left: 5px; }
-        .bar .btn { white-space: nowrap; padding: 0 18px; }
+        .bar .btn { position: relative; white-space: nowrap; padding: 0 18px; }
+        .bar .btn.pulse::after {
+            content: ''; position: absolute; inset: -5px; border-radius: 16px; border: 2px solid var(--muschio);
+            pointer-events: none; animation: ring 1s var(--ease-out) 2;
+        }
         .lbl-s { display: none; }
         @media (max-width: 419px) { .lbl-l { display: none; } .lbl-s { display: inline; } }
+
+        /* foglia che vola verso il totale quando aggiungi una piantina */
+        .fly { position: fixed; z-index: 90; width: 20px; height: 20px; pointer-events: none; color: var(--muschio); }
 
         .btn {
             display: inline-flex; align-items: center; justify-content: center; gap: 8px;
             min-height: 48px; padding: 0 20px; border-radius: 12px; border: 1px solid transparent;
             font-size: 16px; font-weight: 600; text-decoration: none; text-align: center;
-            transition: background .15s, border-color .15s, color .15s;
+            transition: background .2s var(--ease-quart), border-color .2s var(--ease-quart), color .2s var(--ease-quart), transform .12s var(--ease-quart);
         }
-        .btn.primary { background: var(--bosco); color: #fff; }
+        .btn.primary { background: var(--bosco); color: var(--chiaro); }
         .btn.primary:hover { background: var(--bosco-2); }
         .btn.secondary { background: transparent; border-color: var(--bosco); color: var(--bosco); }
         .btn.secondary:hover { background: var(--germoglio-2); }
         .btn.light { background: var(--germoglio); color: var(--bosco); }
         .btn.light:hover { background: #DCEBB0; }
-        .btn.ghost-light { background: transparent; color: #fff; border-color: rgba(255,255,255,.45); }
-        .btn.ghost-light:hover { background: rgba(255,255,255,.1); }
+        .btn:active, .chip:active, .step:active:not(:disabled), .thumb:active { transform: scale(.95); }
+        .btn .ok-ic { display: none; }
+        .btn.done .ok-ic { display: inline; animation: pop .3s var(--ease-out); }
 
-        /* ---- Pannelli (richiesta, scheda pianta, proposta) ---- */
+        /* ---- Pannelli (richiesta, scheda pianta) ---- */
         .sheet {
             position: fixed; inset: 0; z-index: 100;
             display: flex; align-items: flex-end; justify-content: center;
             padding: max(12px, env(safe-area-inset-top)) 0 0;
-            background: rgba(15,28,23,0); transition: background .22s;
+            background: rgba(15,28,23,0); transition: background .2s var(--ease-in);
         }
-        .sheet.open { background: rgba(15,28,23,.5); }
+        .sheet.open { background: rgba(15,28,23,.5); transition: background .3s var(--ease-out); }
         .sheet-panel {
             width: 100%; max-width: 640px; max-height: 100%; overflow: auto; overscroll-behavior: contain;
             background: var(--card); border-radius: 20px 20px 0 0;
             padding-bottom: env(safe-area-inset-bottom);
-            transform: translateY(28px); opacity: 0;
-            transition: transform .24s cubic-bezier(.2,.7,.2,1), opacity .2s;
+            transform: translateY(40px); opacity: 0;
+            transition: transform .2s var(--ease-in), opacity .18s var(--ease-in); /* uscita: più rapida */
         }
-        .sheet.open .sheet-panel { transform: none; opacity: 1; }
+        .sheet.open .sheet-panel { transform: none; opacity: 1; transition: transform .36s var(--ease-out), opacity .24s var(--ease-out); }
+        .sheet.instant, .sheet.instant .sheet-panel { transition: none !important; }
         @media (min-width: 760px) {
             .sheet { align-items: center; padding: 24px; }
-            .sheet-panel { border-radius: 20px; max-height: calc(100dvh - 48px); }
+            .sheet-panel { border-radius: 20px; max-height: calc(100dvh - 48px); transform: translateY(16px) scale(.98); }
         }
         .sheet-head {
             position: sticky; top: 0; z-index: 2;
@@ -225,15 +244,16 @@
             padding: 12px max(12px, env(safe-area-inset-right)) 10px max(22px, env(safe-area-inset-left));
             background: var(--card); border-bottom: 1px solid var(--line);
         }
-        .sheet-head h2 { margin: 0; font-family: var(--serif); font-size: 24px; font-weight: 600; line-height: 1.2; }
+        .sheet-head h2 { margin: 0; font-family: var(--serif); font-size: 23px; font-weight: 700; line-height: 1.2; }
         .sheet-close {
             flex-shrink: 0; width: 44px; height: 44px; border: 0; border-radius: 50%;
             background: var(--carta); font-size: 26px; line-height: 1; color: var(--ink);
+            transition: background .15s var(--ease-quart), transform .12s var(--ease-quart);
         }
         .sheet-close:hover { background: var(--line); }
+        .sheet-close:active { transform: scale(.92); }
         .sheet-body { padding: 18px max(22px, env(safe-area-inset-right)) 26px max(22px, env(safe-area-inset-left)); }
-        .sec { margin: 28px 0 10px; font-family: var(--serif); font-size: 20px; font-weight: 600; line-height: 1.25; }
-        .sec:first-child { margin-top: 0; }
+        .sec { margin: 28px 0 10px; font-family: var(--serif); font-size: 20px; font-weight: 700; line-height: 1.25; }
         .small { font-size: 14px; color: var(--muted); }
 
         /* richiesta */
@@ -246,16 +266,17 @@
         .totals { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; margin: 14px 0 0; font-variant-numeric: tabular-nums; }
         .totals dt { color: var(--muted); }
         .totals dd { margin: 0; text-align: right; }
-        .totals .grand { font-family: var(--serif); font-size: 22px; font-weight: 600; color: var(--ink); }
+        .totals .grand { font-family: var(--serif); font-size: 22px; font-weight: 700; color: var(--ink); }
         .o-empty { margin: 0; color: var(--muted); }
         .form { display: grid; gap: 14px; }
-        @media (min-width: 520px) { .form .half { grid-column: span 1; } .form { grid-template-columns: 1fr 1fr; } .form .full { grid-column: 1 / -1; } }
+        @media (min-width: 520px) { .form { grid-template-columns: 1fr 1fr; } .form .full { grid-column: 1 / -1; } }
         .field label { display: block; margin-bottom: 6px; font-size: 15px; font-weight: 600; }
         .field label span { font-weight: 400; color: var(--muted); }
         .field input, .field select, .field textarea {
             width: 100%; min-height: 48px; padding: 10px 14px;
             font: inherit; font-size: 16px; color: var(--ink);
             background: var(--carta); border: 1px solid var(--line); border-radius: 12px;
+            transition: border-color .2s var(--ease-quart), box-shadow .2s var(--ease-quart);
         }
         .field textarea { min-height: 92px; resize: vertical; }
         .field input:focus, .field select:focus, .field textarea:focus {
@@ -274,57 +295,62 @@
 
         /* scheda pianta */
         .p-media {
+            position: relative;
             margin: -18px calc(-1 * max(22px, env(safe-area-inset-right))) 16px calc(-1 * max(22px, env(safe-area-inset-left)));
             aspect-ratio: 4 / 3; background: var(--germoglio-2); color: var(--muschio);
             display: flex; align-items: center; justify-content: center; overflow: hidden;
         }
-        .p-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .p-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+        .p-media img.hi { opacity: 0; transition: opacity .5s var(--ease-out); }
+        .p-media img.hi.ok { opacity: 1; }
         .p-media .ph { padding: 24px; text-align: center; color: var(--muted); font-size: 15px; }
         .p-text { margin: 16px 0 18px; line-height: 1.6; }
         .p-credit { margin: 16px 0 0; font-size: 13px; line-height: 1.5; color: var(--muted); }
         .spinner { width: 30px; height: 30px; border: 3px solid var(--line); border-top-color: var(--muschio); border-radius: 50%; animation: spin .8s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* proposta */
-        .note { margin: 0; font-family: var(--serif); font-size: 20px; line-height: 1.5; }
-        .note-by { margin: 10px 0 0; color: var(--muted); }
-        .benefits { margin: 0; padding-left: 20px; display: grid; gap: 10px; }
-        .benefits li::marker { color: var(--muschio); }
-        .offer { list-style: none; margin: 0; padding: 0; }
-        .offer li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; padding: 14px 0; border-top: 1px solid var(--line); }
-        .offer li:last-child { border-bottom: 1px solid var(--line); }
-        .offer h4 { margin: 0; font-size: 17px; font-weight: 600; }
-        .offer .price { font-family: var(--serif); font-size: 20px; font-weight: 600; text-align: right; white-space: nowrap; }
-        .offer .price small { display: block; font-family: var(--sans); font-size: 13px; font-weight: 400; color: var(--muted); }
-        .offer p { grid-column: 1 / -1; margin: 0; color: var(--muted); font-size: 15px; }
-        .contact { display: flex; flex-wrap: wrap; gap: 10px; }
-        .contact .btn { flex: 1 1 160px; }
+        /* foto che si espande dalla scheda al pannello (View Transitions) */
+        ::view-transition-group(pmedia), ::view-transition-group(pname) { animation-duration: .45s; animation-timing-function: cubic-bezier(.22, 1, .36, 1); }
+        ::view-transition-old(pmedia), ::view-transition-new(pmedia) { height: 100%; object-fit: cover; }
+        ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .3s; }
 
         /* ---- Copertina demo ---- */
         .cover {
             position: fixed; inset: 0; z-index: 120; overflow: auto;
             display: flex; flex-direction: column;
-            background: var(--bosco); color: #fff;
-            transition: opacity .3s;
+            background: var(--bosco); color: var(--chiaro);
         }
-        .cover.out { opacity: 0; }
+        .cover.out { transform: translateY(-100%); transition: transform .55s var(--ease-in); }
         .cover:focus { outline: none; }
         .cover-in {
             width: 100%; max-width: 680px; margin: auto auto 0;
             padding: calc(32px + env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) 28px max(24px, env(safe-area-inset-left));
         }
-        .cover-for { margin: 0 0 14px; font-size: 16px; color: rgba(255,255,255,.78); }
-        .cover h1 { margin: 0 0 18px; font-family: var(--serif); font-weight: 500; font-size: clamp(36px, 9.5vw, 60px); line-height: 1.04; letter-spacing: -0.015em; }
-        .cover .lead { margin: 0 0 26px; max-width: 46ch; font-size: 18px; line-height: 1.5; color: rgba(255,255,255,.86); }
-        .cover-actions { display: flex; flex-wrap: wrap; gap: 10px; }
-        .cover-actions .btn { flex: 1 1 180px; }
-        .cover-by { margin: 18px 0 0; font-size: 14px; color: rgba(255,255,255,.62); }
-        .bench { display: block; flex-shrink: 0; width: 100%; height: 160px; }
-        .sprout { transform-box: fill-box; transform-origin: 50% 100%; animation: grow .9s cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(150ms + var(--i) * 45ms); }
+        .cover-for { margin: 0 0 16px; font-size: 16px; color: rgba(245,248,240,.78); }
+        .cover h1 { margin: 0 0 20px; font-family: var(--serif); font-weight: 400; font-size: clamp(34px, 9vw, 58px); line-height: 1.08; letter-spacing: -0.01em; }
+        .cover h1 .w { display: inline-block; }
+        .cover .lead { margin: 0 0 28px; max-width: 46ch; font-size: 18px; line-height: 1.55; color: rgba(245,248,240,.86); }
+        .cover-actions .btn { width: 100%; max-width: 360px; }
+        .cover-by { margin: 18px 0 0; font-size: 14px; color: rgba(245,248,240,.62); }
+        .bench { display: block; flex-shrink: 0; width: 100%; height: 170px; touch-action: pan-y; }
+        .bench g { transform-box: fill-box; transform-origin: 50% 100%; }
+        .sprout { animation: grow 1s var(--ease-out) both; animation-delay: calc(500ms + var(--i) * 45ms); }
+        .lean { transform: rotate(var(--lean, 0deg)); transition: transform .7s var(--ease-quart); }
+        .sway { animation: sway var(--sd, 5s) ease-in-out infinite; animation-delay: var(--sp, 0s); }
+        /* entrata della copertina: parole che si mettono a fuoco, poi testo e pulsante */
+        .cover .rise { animation: rise .8s var(--ease-out) both; animation-delay: var(--d, 0ms); }
+        .cover h1 .w { animation: focusIn .9s var(--ease-out) both; animation-delay: var(--d, 0ms); }
+
         @keyframes grow { from { transform: scaleY(.04); opacity: 0; } to { transform: none; opacity: 1; } }
+        @keyframes sway { 0%, 100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
+        @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+        @keyframes focusIn { from { opacity: 0; transform: translateY(.35em); filter: blur(8px); } to { opacity: 1; transform: none; filter: blur(0); } }
+        @keyframes pop { from { transform: scale(.4); opacity: 0; } to { transform: none; opacity: 1; } }
+        @keyframes ring { from { transform: scale(.94); opacity: 1; } to { transform: scale(1.12); opacity: 0; } }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { animation: none !important; transition: none !important; }
+            ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
         }
     </style>
 </head>
@@ -334,13 +360,12 @@
 
 <header class="top">
     <div class="top-in">
-        <div class="brand-row">
-            <h1 class="brand">
+        <h1 class="brand">
+            <button type="button" class="brand-btn" id="brandBtn" tabindex="-1">
                 <span class="brand-name" id="brandName">Listino piantine</span>
                 <span class="brand-place" id="brandPlace"></span>
-            </h1>
-            <button type="button" class="demo-pill" id="demoPill" hidden>Proposta</button>
-        </div>
+            </button>
+        </h1>
         <label class="search">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
             <input type="search" id="q" placeholder="Cerca per nome o nome latino" autocomplete="off" aria-label="Cerca una specie">
@@ -366,7 +391,10 @@
         <p id="priceNote"></p>
     </div>
     <div class="grid" id="grid"></div>
-    <p class="empty" id="empty" hidden>Nessuna specie trovata. Prova con un altro nome o togli i filtri.</p>
+    <div class="empty" id="empty" hidden>
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21v-9"/><path d="M12 12c0-4 3-7 7-7 0 4-3 7-7 7zM12 14c0-3-2.5-5.5-6-5.5 0 3 2.5 5.5 6 5.5z"/></svg>
+        <p>Nessuna specie trovata. Prova con un altro nome o togli i filtri.</p>
+    </div>
     <footer class="foot" id="foot"></footer>
 </main>
 
@@ -374,7 +402,7 @@
     <div class="bar-in">
         <div class="bar-sum" aria-live="polite">
             <span class="bar-count" id="barCount">Nessuna piantina scelta</span>
-            <span class="bar-total"><span id="barTotal">€ 0,00</span><small>IVA inclusa</small></span>
+            <span class="bar-total" id="barTotalWrap"><span id="barTotal">€ 0,00</span><small>IVA inclusa</small></span>
         </div>
         <button type="button" class="btn primary" id="barBtn"><span class="lbl-l">Prepara la richiesta</span><span class="lbl-s">Richiesta</span></button>
     </div>
@@ -394,10 +422,10 @@
             <h3 class="sec">I tuoi dati</h3>
             <form class="form" id="reqForm" novalidate>
                 <div class="field full"><label for="fNome">Nome e cognome, o ente</label><input id="fNome" name="nome" autocomplete="name" required></div>
-                <div class="field half"><label for="fTel">Telefono</label><input id="fTel" name="tel" type="tel" autocomplete="tel" inputmode="tel"></div>
-                <div class="field half"><label for="fEmail">Email</label><input id="fEmail" name="email" type="email" autocomplete="email" inputmode="email"></div>
-                <div class="field half"><label for="fCf">Codice fiscale o P. IVA <span>(per la fattura)</span></label><input id="fCf" name="cf" autocapitalize="characters" autocomplete="off"></div>
-                <div class="field half"><label for="fComune">Comune di impianto</label><input id="fComune" name="comune" autocomplete="address-level2"></div>
+                <div class="field"><label for="fTel">Telefono</label><input id="fTel" name="tel" type="tel" autocomplete="tel" inputmode="tel"></div>
+                <div class="field"><label for="fEmail">Email</label><input id="fEmail" name="email" type="email" autocomplete="email" inputmode="email"></div>
+                <div class="field"><label for="fCf">Codice fiscale o P. IVA <span>(per la fattura)</span></label><input id="fCf" name="cf" autocapitalize="characters" autocomplete="off"></div>
+                <div class="field"><label for="fComune">Comune di impianto</label><input id="fComune" name="comune" autocomplete="address-level2"></div>
                 <div class="field full" id="vivaioField"><label for="fVivaio">Vivaio di ritiro</label><select id="fVivaio" name="vivaio"></select></div>
                 <div class="field full"><label for="fNote">Note <span>(facoltative)</span></label><textarea id="fNote" name="note" placeholder="Per esempio: periodo di ritiro preferito"></textarea></div>
             </form>
@@ -406,8 +434,8 @@
             <div class="actions">
                 <button type="button" class="btn primary" id="sendMail" hidden>Invia la richiesta per email</button>
                 <button type="button" class="btn primary" id="sendWa" hidden>Invia la richiesta su WhatsApp</button>
-                <button type="button" class="btn secondary" id="copyText">Copia il testo</button>
-                <button type="button" class="btn secondary" id="copyLink">Copia il link</button>
+                <button type="button" class="btn secondary" id="copyText"><span class="ok-ic" aria-hidden="true">✓</span><span class="lbl">Copia il testo</span></button>
+                <button type="button" class="btn secondary" id="copyLink"><span class="ok-ic" aria-hidden="true">✓</span><span class="lbl">Copia il link</span></button>
             </div>
             <p class="msg" id="oMsg" role="status"></p>
             <button type="button" class="link-btn" id="resetBtn">Svuota la selezione</button>
@@ -433,28 +461,16 @@
     </div>
 </div>
 
-<!-- Proposta (solo demo) -->
-<div class="sheet" id="sheet-proposal" hidden>
-    <div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="propTitle">
-        <div class="sheet-head">
-            <h2 id="propTitle">La proposta</h2>
-            <button type="button" class="sheet-close" aria-label="Chiudi">×</button>
-        </div>
-        <div class="sheet-body" id="propBody"></div>
-    </div>
-</div>
-
-<!-- Copertina (solo demo, alla prima apertura) -->
+<!-- Copertina (solo demo, una volta per sessione) -->
 <div class="cover" id="cover" role="dialog" aria-modal="true" aria-labelledby="coverTitle" tabindex="-1" hidden>
     <div class="cover-in">
-        <p class="cover-for" id="coverFor"></p>
+        <p class="cover-for rise" id="coverFor" style="--d:80ms"></p>
         <h1 id="coverTitle">Richiedere piantine forestali dal telefono, in un minuto.</h1>
-        <p class="lead" id="coverLead"></p>
-        <div class="cover-actions">
+        <p class="lead rise" id="coverLead" style="--d:750ms"></p>
+        <div class="cover-actions rise" style="--d:850ms">
             <button type="button" class="btn light" id="coverGo">Prova il listino</button>
-            <button type="button" class="btn ghost-light" id="coverProp">Leggi la proposta</button>
         </div>
-        <p class="cover-by" id="coverBy"></p>
+        <p class="cover-by rise" id="coverBy" style="--d:950ms"></p>
     </div>
     <div id="bench"></div>
 </div>
@@ -485,32 +501,9 @@
         altezzaAlbero: 7,
         // Chiave di salvataggio nel browser: cambiala se più listini stanno sullo stesso dominio
         id: 'listino-piante-ordine',
-
-        // ---- Demo per la proposta di vendita. Con attiva: false sparisce tutto. ----
-        demo: {
-            attiva: true,
-            autore: 'Giulio Colombo',
-            nota: "L'ultima volta che ho richiesto delle piantine ho fatto un po' fatica a compilare il modulo dal telefono. Così ho costruito questa app con il vostro listino: ho pensato che potesse semplificare un po' la vita a voi e a chi vi scrive.",
-            vantaggi: [
-                "Le richieste arrivano complete e leggibili: dati del richiedente, specie, formati, quantità e totale, in un'email già pronta. Niente moduli da decifrare o ricopiare.",
-                "Chi richiede vede subito cosa è disponibile e quanto spende, quindi meno telefonate per chiedere prezzi e formati.",
-                "Funziona su qualsiasi telefono e computer, senza installare nulla.",
-                "Il listino si aggiorna in pochi minuti a ogni stagione. Nessun server né costi di gestione: è una sola pagina, pubblicabile sul vostro sito."
-            ],
-            offerta: [
-                { titolo: 'Versione definitiva', prezzo: '€ 1.200', nota: 'una tantum',
-                  testo: 'Listino allineato al vostro modulo, campi della richiesta concordati con voi, pubblicazione sul vostro sito e verifica di accessibilità.' },
-                { titolo: 'Aggiornamenti e assistenza', prezzo: '€ 300', nota: "all'anno",
-                  testo: 'Aggiornamento del listino a ogni stagione, piccole modifiche e assistenza.' },
-                { titolo: 'Sviluppo su misura', prezzo: 'Da concordare', nota: '',
-                  testo: 'Disponibilità aggiornata in tempo reale, pannello per modificare il listino in autonomia, elenco delle richieste ricevute ed esportazione in Excel.' }
-            ],
-            notaPrezzi: 'Prezzi indicativi, da definire insieme.',
-            // Contatti per la proposta. Vuoto = pulsante nascosto.
-            whatsapp: '',   // es. '393331234567'
-            telefono: '',   // es. '+39 333 123 4567'
-            email: ''
-        }
+        // Demo: copertina iniziale, nota "demo non ufficiale", [DEMO] nell'oggetto delle email.
+        // Con attiva: false resta il listino definitivo.
+        demo: { attiva: true, autore: 'Giulio Colombo' }
     };
 
     /* ---- Dati botanici ----
@@ -666,6 +659,8 @@
     CONFIG.formati.forEach(f => { PRICES[f.k] = f.prezzo; SIZE[f.k] = f.etichetta; });
     const IVA_PCT = (CONFIG.iva * 100).toLocaleString('it-IT') + '%';
     const DEMO = CONFIG.demo && CONFIG.demo.attiva ? CONFIG.demo : null;
+    const REDUCE = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const EASE_OUT = 'cubic-bezier(.16, 1, .3, 1)';
     const G_LABEL = ['', 'crescita lenta', 'crescita media', 'crescita rapida'];
     const O_LABEL = ['', 'pieno sole', "mezz'ombra", 'ombra'];
     const F_LABEL = ['frutti poco vistosi', 'frutti per la fauna', 'frutti eduli'];
@@ -676,6 +671,10 @@
     function latinShown(p) {
         const l = LATIN_SHOW[p.n] || LATIN[p.n] || '';
         return norm(p.n).indexOf(norm(l)) === 0 ? '' : l; // "Ginkgo biloba": il nome è già quello latino
+    }
+    function inView(el, margin) {
+        const r = el.getBoundingClientRect(), m = margin || 0;
+        return r.bottom > -m && r.top < innerHeight + m && r.width > 0;
     }
 
     /* ---- Icone ---- */
@@ -692,6 +691,7 @@
         f: svg('<circle cx="9" cy="15" r="4"/><circle cx="16.5" cy="13.5" r="3.5"/><path d="M10 11c.5-4 2.5-6.5 6-8"/>'),
         leaf: svg('<path d="M5 19c0-8 5-14 14-14 0 9-6 14-14 14z"/><path d="M5 19l8-8"/>', 30)
     };
+    const LEAF_FILL = '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19c0-8 5-14 14-14 0 9-6 14-14 14z" fill="currentColor"/><path d="M5 19l8-8" stroke="#F5F8F0" stroke-width="1.6" stroke-linecap="round"/></svg>';
     function traitsHTML(p) {
         return '<li title="Altezza a maturità">' + IC.h + p.h.toLocaleString('it-IT') + ' m</li>' +
             '<li title="Velocità di crescita">' + IC.g + G_LABEL[p.g] + '</li>' +
@@ -742,6 +742,35 @@
     const cards = Array.from(grid.children);
     const qtys = Array.from(grid.querySelectorAll('.qty'));
 
+    // Le schede visibili riprendono posto con un movimento, invece di saltare (FLIP)
+    function flip(change) {
+        if (REDUCE || !Element.prototype.animate) { change(); return; }
+        const before = new Map();
+        cards.forEach(c => { if (!c.hidden && inView(c, 80)) before.set(c, c.getBoundingClientRect()); });
+        change();
+        const lim = innerHeight * 0.7;
+        cards.forEach(c => {
+            if (c.hidden || !inView(c, 80)) return;
+            const r = c.getBoundingClientRect(), b = before.get(c);
+            if (b) {
+                const dx = b.left - r.left, dy = Math.max(-lim, Math.min(lim, b.top - r.top));
+                if (dx || dy) c.animate([{ transform: 'translate(' + dx + 'px,' + dy + 'px)' }, { transform: 'none' }], { duration: 480, easing: EASE_OUT });
+            } else {
+                c.animate([{ opacity: 0, transform: 'translateY(14px) scale(.98)' }, { opacity: 1, transform: 'none' }], { duration: 380, easing: EASE_OUT });
+            }
+        });
+    }
+    // Entrata delle prime schede visibili, una dopo l'altra
+    function revealCards(delay) {
+        if (REDUCE || !Element.prototype.animate) return;
+        let n = 0;
+        cards.forEach(c => {
+            if (c.hidden || n >= 6 || !inView(c)) return;
+            c.animate([{ opacity: 0, transform: 'translateY(22px)' }, { opacity: 1, transform: 'none' }], { duration: 700, delay: delay + n * 80, easing: EASE_OUT, fill: 'backwards' });
+            n++;
+        });
+    }
+
     /* ---- Ricerca e filtri ---- */
     const state = { q: '', tipo: '', disp: false };
     function applyFilter() {
@@ -786,17 +815,19 @@
     document.getElementById('chips').addEventListener('click', e => {
         const ch = e.target.closest('.chip');
         if (!ch) return;
-        if (ch.dataset.key) {
-            const i = sortKeys.indexOf(ch.dataset.key);
-            if (i > -1) sortKeys.splice(i, 1); else sortKeys.push(ch.dataset.key);
-            applySort();
-        } else if (ch.dataset.tipo) {
-            state.tipo = state.tipo === ch.dataset.tipo ? '' : ch.dataset.tipo;
-            applyFilter();
-        } else if (ch.dataset.disp) {
-            state.disp = !state.disp;
-            applyFilter();
-        }
+        flip(() => {
+            if (ch.dataset.key) {
+                const i = sortKeys.indexOf(ch.dataset.key);
+                if (i > -1) sortKeys.splice(i, 1); else sortKeys.push(ch.dataset.key);
+                applySort();
+            } else if (ch.dataset.tipo) {
+                state.tipo = state.tipo === ch.dataset.tipo ? '' : ch.dataset.tipo;
+                applyFilter();
+            } else if (ch.dataset.disp) {
+                state.disp = !state.disp;
+                applyFilter();
+            }
+        });
         renderChips();
     });
 
@@ -815,13 +846,41 @@
         syncStepper(input);
         calculateTotal();
     }
+    // la foglia parte dal + e vola fino al totale: si vede dove è finita la piantina
+    function flyToBar(fromEl) {
+        const target = document.getElementById('barTotalWrap');
+        if (REDUCE || !Element.prototype.animate) { bump(); return; }
+        const a = fromEl.getBoundingClientRect(), b = target.getBoundingClientRect();
+        const leaf = document.createElement('div');
+        leaf.className = 'fly';
+        leaf.innerHTML = LEAF_FILL;
+        const x0 = a.left + a.width / 2 - 10, y0 = a.top + a.height / 2 - 10;
+        const dx = b.left + 24 - x0, dy = b.top + b.height / 2 - 10 - y0;
+        leaf.style.left = x0 + 'px'; leaf.style.top = y0 + 'px';
+        document.body.appendChild(leaf);
+        leaf.animate([
+            { transform: 'translate(0,0) scale(.5) rotate(0deg)', opacity: 0 },
+            { transform: 'translate(' + dx * 0.3 + 'px,' + (Math.min(dy * 0.3, 0) - 70) + 'px) scale(1.2) rotate(-35deg)', opacity: 1, offset: 0.35 },
+            { transform: 'translate(' + dx + 'px,' + dy + 'px) scale(.45) rotate(25deg)', opacity: 0.3 }
+        ], { duration: 700, easing: 'cubic-bezier(.45, 0, .25, 1)' }).onfinish = () => { leaf.remove(); bump(); };
+    }
+    function bump() {
+        if (REDUCE || !Element.prototype.animate) return;
+        document.getElementById('barTotalWrap').animate([{ transform: 'scale(1)' }, { transform: 'scale(1.08)' }, { transform: 'scale(1)' }], { duration: 320, easing: 'ease-out' });
+    }
     grid.addEventListener('click', e => {
         const st = e.target.closest('.step');
         if (st) {
             const input = st.parentNode.querySelector('.qty');
-            input.value = Math.min(9999, Math.max(0, (parseInt(input.value, 10) || 0) + (+st.dataset.d)));
+            const d = +st.dataset.d;
+            const before = parseInt(input.value, 10) || 0;
+            const q = Math.min(9999, Math.max(0, before + d));
+            if (q === before) return;
+            input.value = q;
+            if (!REDUCE && input.animate) input.animate([{ transform: 'translateY(' + (d > 0 ? 45 : -45) + '%)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 200, easing: EASE_OUT });
             syncStepper(input);
             calculateTotal();
+            if (d > 0) flyToBar(st);
             return;
         }
         const op = e.target.closest('[data-open]');
@@ -836,10 +895,33 @@
         qtys.forEach(inp => { const q = parseInt(inp.value, 10) || 0; if (q > 0) { sub += q * PRICES[inp.dataset.k]; items += q; } });
         return { sub: sub, iva: sub * CONFIG.iva, tot: sub * (1 + CONFIG.iva), items: items };
     }
+    // il totale scorre fino al nuovo valore invece di cambiare di colpo
+    let shownTot = 0, tickRAF = 0, hadItems = false, booting = true;
+    function setTotal(v) {
+        const el = document.getElementById('barTotal');
+        cancelAnimationFrame(tickRAF);
+        const from = shownTot;
+        if (REDUCE || Math.abs(v - from) < 0.005) { shownTot = v; el.textContent = euro(v); return; }
+        const t0 = performance.now(), dur = 480;
+        const step = now => {
+            const k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 4);
+            shownTot = k < 1 ? from + (v - from) * e : v;
+            el.textContent = euro(shownTot);
+            if (k < 1) tickRAF = requestAnimationFrame(step);
+        };
+        tickRAF = requestAnimationFrame(step);
+    }
     function calculateTotal() {
         const t = totals();
         document.getElementById('barCount').textContent = t.items ? t.items + (t.items === 1 ? ' piantina scelta' : ' piantine scelte') : 'Nessuna piantina scelta';
-        document.getElementById('barTotal').textContent = euro(t.tot);
+        setTotal(t.tot);
+        // alla prima piantina scelta, un segnale discreto su dove andare dopo
+        if (t.items && !hadItems && !booting && !REDUCE) {
+            const b = document.getElementById('barBtn');
+            b.classList.remove('pulse'); void b.offsetWidth; b.classList.add('pulse');
+            b.addEventListener('animationend', () => b.classList.remove('pulse'), { once: true });
+        }
+        hadItems = t.items > 0;
         saveLocal();
     }
 
@@ -866,7 +948,6 @@
             inp.value = (o[inp.dataset.i] && o[inp.dataset.i][inp.dataset.k]) || 0;
             syncStepper(inp);
         });
-        calculateTotal();
     }
     function saveLocal() { try { localStorage.setItem(STORE, JSON.stringify({ v: LIST_V, o: getOrder() })); } catch (e) {} }
     function encodeOrder(o) {
@@ -903,34 +984,41 @@
 
     /* ---- Pannelli ---- */
     let lastFocus = null;
-    function openSheet(id) {
-        closeSheets(true);
+    function openSheet(id, instant) {
+        closeSheets(true, true);
         const s = document.getElementById('sheet-' + id);
         clearTimeout(s._t);
         lastFocus = lastFocus || document.activeElement;
         s.hidden = false;
         s.querySelector('.sheet-panel').scrollTop = 0;
-        requestAnimationFrame(() => requestAnimationFrame(() => s.classList.add('open')));
+        if (instant) s.classList.add('instant', 'open');
+        else requestAnimationFrame(() => requestAnimationFrame(() => s.classList.add('open')));
         document.body.classList.add('locked');
         s.querySelector('.sheet-close').focus({ preventScroll: true });
     }
-    function closeSheets(keepFocus) {
+    function closeSheets(keepFocus, instant) {
         document.querySelectorAll('.sheet:not([hidden])').forEach(s => {
-            s.classList.remove('open');
-            s._t = setTimeout(() => { s.hidden = true; }, 240);
+            s.classList.remove('instant', 'open');
+            clearTimeout(s._t);
+            if (instant) s.hidden = true;
+            else s._t = setTimeout(() => { s.hidden = true; }, 220);
         });
         if (keepFocus) return;
         document.body.classList.remove('locked');
         if (lastFocus && document.contains(lastFocus)) lastFocus.focus({ preventScroll: true });
         lastFocus = null;
     }
+    function requestClose() {
+        if (!document.getElementById('sheet-plant').hidden) closePlant();
+        else closeSheets();
+    }
     document.querySelectorAll('.sheet').forEach(s => {
-        s.addEventListener('click', e => { if (e.target === s || e.target.closest('.sheet-close')) closeSheets(); });
+        s.addEventListener('click', e => { if (e.target === s || e.target.closest('.sheet-close')) requestClose(); });
     });
     document.addEventListener('keydown', e => {
         if (e.key !== 'Escape') return;
         if (!document.getElementById('cover').hidden) closeCover();
-        else closeSheets();
+        else requestClose();
     });
 
     /* ---- Richiesta ---- */
@@ -1011,12 +1099,15 @@
         m.textContent = msg;
         m.classList.toggle('err', !!err);
     }
+    function shake(el) {
+        if (!REDUCE && el.animate) el.animate([{ transform: 'none' }, { transform: 'translateX(-7px)' }, { transform: 'translateX(6px)' }, { transform: 'translateX(-3px)' }, { transform: 'none' }], { duration: 340, easing: 'ease-out' });
+    }
     function validate() {
         if (!Object.keys(getOrder()).length) { flash('Scegli almeno una piantina prima di inviare.', true); return false; }
         const nome = document.getElementById('fNome'), tel = document.getElementById('fTel'), mail = document.getElementById('fEmail');
         [nome, tel, mail].forEach(el => el.removeAttribute('aria-invalid'));
-        if (!nome.value.trim()) { nome.setAttribute('aria-invalid', 'true'); nome.focus(); flash('Scrivi il nome o l\'ente che fa la richiesta.', true); return false; }
-        if (!tel.value.trim() && !mail.value.trim()) { tel.setAttribute('aria-invalid', 'true'); mail.setAttribute('aria-invalid', 'true'); tel.focus(); flash('Lascia almeno un recapito: telefono o email.', true); return false; }
+        if (!nome.value.trim()) { nome.setAttribute('aria-invalid', 'true'); nome.focus(); shake(nome); flash('Scrivi il nome o l\'ente che fa la richiesta.', true); return false; }
+        if (!tel.value.trim() && !mail.value.trim()) { tel.setAttribute('aria-invalid', 'true'); mail.setAttribute('aria-invalid', 'true'); tel.focus(); shake(tel); shake(mail); flash('Lascia almeno un recapito: telefono o email.', true); return false; }
         return true;
     }
     function subject() { return (DEMO ? '[DEMO] ' : '') + 'Richiesta piante forestali' + (readForm().nome ? ', ' + readForm().nome : ''); }
@@ -1030,22 +1121,32 @@
         window.open('https://wa.me/' + waNum + '?text=' + encodeURIComponent(requestText()), '_blank', 'noopener');
         flash('Si apre WhatsApp con la richiesta già scritta: controlla e premi Invia.');
     });
-    async function copyToClip(text, okMsg) {
-        try { await navigator.clipboard.writeText(text); flash(okMsg); }
+    function done(btn, label) {
+        const l = btn.querySelector('.lbl'), orig = btn.dataset.orig || l.textContent;
+        btn.dataset.orig = orig;
+        l.textContent = label;
+        btn.classList.add('done');
+        clearTimeout(btn._t);
+        btn._t = setTimeout(() => { l.textContent = orig; btn.classList.remove('done'); }, 1800);
+    }
+    async function copyToClip(text, btn, okMsg) {
+        let ok = false;
+        try { await navigator.clipboard.writeText(text); ok = true; }
         catch (e) {
             const ta = document.createElement('textarea');
             ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
             ta.style.fontSize = '16px'; // anche nascosta: sotto i 16px iOS zooma al focus
             document.body.appendChild(ta); ta.focus(); ta.select();
-            try { document.execCommand('copy'); flash(okMsg); } catch (e2) { flash(text); }
+            try { ok = document.execCommand('copy'); } catch (e2) {}
             document.body.removeChild(ta);
         }
+        if (ok) { done(btn, 'Copiato'); flash(okMsg); } else flash(text);
     }
-    document.getElementById('copyText').addEventListener('click', () => {
+    document.getElementById('copyText').addEventListener('click', e => {
         if (!Object.keys(getOrder()).length) { flash('Non c\'è ancora niente da copiare.', true); return; }
-        copyToClip(requestText(), 'Testo della richiesta copiato.');
+        copyToClip(requestText(), e.currentTarget, 'Testo della richiesta copiato.');
     });
-    document.getElementById('copyLink').addEventListener('click', () => copyToClip(orderLink(), 'Link copiato: chi lo apre ritrova la stessa selezione.'));
+    document.getElementById('copyLink').addEventListener('click', e => copyToClip(orderLink(), e.currentTarget, 'Link copiato: chi lo apre ritrova la stessa selezione.'));
     document.getElementById('resetBtn').addEventListener('click', () => {
         qtys.forEach(inp => { inp.value = 0; syncStepper(inp); });
         calculateTotal();
@@ -1129,19 +1230,47 @@
         }
         box.appendChild(document.createTextNode('Testo da Wikipedia, licenza CC BY-SA 4.0.'));
     }
+
+    // La foto e il nome passano dalla scheda al pannello con View Transitions (dove supportate)
+    const canVT = !!document.startViewTransition && !REDUCE;
+    let plantFrom = null, plantSeq = 0;
+    function vtPair(card) {
+        return card ? [card.querySelector('.thumb'), card.querySelector('.name-btn')] : [null, null];
+    }
     async function openPlant(i) {
+        const seq = ++plantSeq;
         const p = PLANTS[i];
         const latin = LATIN[p.n] || p.n;
-        document.getElementById('pName').textContent = p.n;
+        const card = grid.querySelector('.card[data-index="' + i + '"]');
+        const pName = document.getElementById('pName'), media = document.getElementById('pMedia');
+        pName.textContent = p.n;
         document.getElementById('pLatin').textContent = LATIN_SHOW[p.n] || latin;
         document.getElementById('pTraits').innerHTML = traitsHTML(p);
         document.getElementById('pText').textContent = '';
         document.getElementById('pCredit').textContent = '';
         const link = document.getElementById('pLink');
         link.hidden = true;
-        const media = document.getElementById('pMedia');
-        media.innerHTML = '<div class="spinner" role="status" aria-label="Caricamento foto"></div>';
-        openSheet('plant');
+        // subito la miniatura già caricata, poi la foto grande quando arriva
+        const lo = card && card.querySelector('.thumb img.ok');
+        media.textContent = '';
+        if (lo) { const im = document.createElement('img'); im.src = lo.src; im.alt = p.n; media.appendChild(im); }
+        else media.innerHTML = '<div class="spinner" role="status" aria-label="Caricamento foto"></div>';
+
+        plantFrom = card;
+        const [thumb, nameBtn] = vtPair(card);
+        if (canVT && thumb && inView(thumb)) {
+            thumb.style.viewTransitionName = 'pmedia'; nameBtn.style.viewTransitionName = 'pname';
+            const vt = document.startViewTransition(() => {
+                thumb.style.viewTransitionName = ''; nameBtn.style.viewTransitionName = '';
+                media.style.viewTransitionName = 'pmedia'; pName.style.viewTransitionName = 'pname';
+                lastFocus = thumb;
+                openSheet('plant', true);
+            });
+            vt.finished.finally(() => {
+                media.style.viewTransitionName = ''; pName.style.viewTransitionName = '';
+                document.getElementById('sheet-plant').classList.remove('instant');
+            });
+        } else openSheet('plant');
 
         let info = wikiCache[latin];
         if (info === undefined) {
@@ -1151,14 +1280,16 @@
             if (info && info.img && info.file) info.credit = await wikiCredit(info.file, info.lang);
             wikiCache[latin] = info;
         }
-        if (document.getElementById('pName').textContent !== p.n) return; // nel frattempo è stata aperta un'altra scheda
+        if (seq !== plantSeq) return; // nel frattempo è stata aperta un'altra scheda
 
         if (info && info.img) {
             const img = document.createElement('img');
-            img.src = info.img; img.alt = p.n;
-            media.textContent = '';
+            img.className = 'hi'; img.alt = p.n;
+            img.onload = () => { img.classList.add('ok'); };
+            img.src = info.img;
+            const sp = media.querySelector('.spinner'); if (sp) sp.remove();
             media.appendChild(img);
-        } else {
+        } else if (!lo) {
             media.innerHTML = '<div class="ph">Foto non disponibile al momento.</div>';
         }
         if (info) {
@@ -1175,22 +1306,36 @@
         link.hidden = false;
         renderCredit(info);
     }
+    function closePlant() {
+        const [thumb, nameBtn] = vtPair(plantFrom);
+        const media = document.getElementById('pMedia'), pName = document.getElementById('pName');
+        if (!canVT || !thumb || !inView(thumb) || document.getElementById('sheet-plant').querySelector('.sheet-panel').scrollTop > 40) { closeSheets(); return; }
+        media.style.viewTransitionName = 'pmedia'; pName.style.viewTransitionName = 'pname';
+        const vt = document.startViewTransition(() => {
+            media.style.viewTransitionName = ''; pName.style.viewTransitionName = '';
+            thumb.style.viewTransitionName = 'pmedia'; nameBtn.style.viewTransitionName = 'pname';
+            closeSheets(false, true);
+        });
+        vt.finished.finally(() => { thumb.style.viewTransitionName = ''; nameBtn.style.viewTransitionName = ''; });
+    }
 
-    /* ---- Demo: copertina, proposta, note ---- */
+    /* ---- Demo: copertina e nota ---- */
     const foot = document.getElementById('foot');
     foot.innerHTML =
         (DEMO ? '<p>Demo non ufficiale realizzata da ' + esc(DEMO.autore) + ' per i ' + esc(CONFIG.nome) + '. Specie, formati e prezzi vengono dal modulo di richiesta del vivaio; altezza, crescita, esposizione e frutti sono indicativi.</p>' : '') +
         '<p>Foto e descrizioni da Wikipedia e Wikimedia Commons: autore e licenza di ogni foto sono nella scheda della specie.</p>';
 
+    // Filare di piantine nei contenitori: crescono, ondeggiano e si scostano dal dito
     function bench() {
-        const n = 24, W = 22, base = 128;
-        let s = '<svg class="bench" viewBox="0 0 ' + (n * W) + ' 160" preserveAspectRatio="xMidYMax slice" aria-hidden="true">';
+        const n = 24, W = 22, base = 136;
+        let s = '<svg class="bench" id="benchSvg" viewBox="0 0 ' + (n * W) + ' 170" preserveAspectRatio="xMidYMax slice" aria-hidden="true">';
         for (let i = 0; i < n; i++) {
             const x = i * W + W / 2;
-            const h = 34 + ((i * 37 + 11) % 13) * 5;
+            const h = 36 + ((i * 37 + 11) % 13) * 5.4;
             const top = base - h;
             const conifer = i % 5 === 2;
-            s += '<g class="sprout" style="--i:' + i + '">';
+            const sd = (4 + ((i * 53) % 7) * 0.45).toFixed(2), sp = (-((i * 29) % 11) * 0.4).toFixed(2);
+            s += '<g class="sprout" style="--i:' + i + '"><g class="lean" data-x="' + x + '"><g class="sway" style="--sd:' + sd + 's;--sp:' + sp + 's">';
             if (conifer) {
                 for (let j = 0; j < 3; j++) {
                     const y = top + j * h * 0.22, w = 5 + j * 2.6;
@@ -1205,59 +1350,68 @@
                     s += '<path d="M0 0C4 -6 12 -6 15 0C12 5 4 5 0 0Z" fill="' + (j % 2 ? '#CFE29A' : '#A9C77C') + '" transform="translate(' + x + ' ' + y + ') scale(' + (side * sc) + ' ' + sc + ') rotate(-28)"/>';
                 }
             }
-            s += '</g>';
-            s += '<path d="M' + (x - 8) + ' ' + base + 'H' + (x + 8) + 'L' + (x + 6) + ' 152H' + (x - 6) + 'Z" fill="#10241D"/>';
+            s += '</g></g></g>';
+            s += '<path d="M' + (x - 8) + ' ' + base + 'H' + (x + 8) + 'L' + (x + 6) + ' 160H' + (x - 6) + 'Z" fill="#10241D"/>';
         }
-        s += '<rect x="0" y="152" width="' + (n * W) + '" height="8" fill="#0C1C16"/></svg>';
+        s += '<rect x="0" y="160" width="' + (n * W) + '" height="10" fill="#0C1C16"/></svg>';
         return s;
+    }
+    function benchLean() {
+        const svgEl = document.getElementById('benchSvg');
+        if (!svgEl || REDUCE) return;
+        const leans = Array.from(svgEl.querySelectorAll('.lean'));
+        let raf = 0, px = null;
+        const apply = () => {
+            raf = 0;
+            leans.forEach(g => {
+                if (px === null) { g.style.setProperty('--lean', '0deg'); return; }
+                const r = g.getBoundingClientRect(), dx = (r.left + r.width / 2) - px, f = Math.max(0, 1 - Math.abs(dx) / 150);
+                g.style.setProperty('--lean', (Math.sign(dx) * f * 14).toFixed(1) + 'deg');
+            });
+        };
+        const move = e => { px = e.clientX; if (!raf) raf = requestAnimationFrame(apply); };
+        const cover = document.getElementById('cover');
+        cover.addEventListener('pointermove', move);
+        cover.addEventListener('pointerdown', move);
+        ['pointerleave', 'pointerup', 'pointercancel'].forEach(t => cover.addEventListener(t, () => { px = null; if (!raf) raf = requestAnimationFrame(apply); }));
     }
 
     const cover = document.getElementById('cover');
     const COVER_KEY = CONFIG.id + ':intro';
+    function showCover() {
+        cover.classList.remove('out');
+        cover.hidden = false;
+        document.body.classList.add('locked');
+        cover.focus({ preventScroll: true });
+    }
     function closeCover() {
-        try { localStorage.setItem(COVER_KEY, '1'); } catch (e) {}
-        cover.classList.add('out');
-        setTimeout(() => { cover.hidden = true; }, 300);
-        document.body.classList.remove('locked');
+        try { sessionStorage.setItem(COVER_KEY, '1'); } catch (e) {}
+        if (REDUCE) { cover.hidden = true; document.body.classList.remove('locked'); return; }
+        cover.classList.add('out'); // il sipario sale e scopre il listino
+        setTimeout(() => { cover.hidden = true; document.body.classList.remove('locked'); }, 560);
+        revealCards(220);
     }
     if (DEMO) {
-        const pill = document.getElementById('demoPill');
-        pill.hidden = false;
-        pill.addEventListener('click', () => openSheet('proposal'));
-
-        const contacts = [];
-        const dWa = String(DEMO.whatsapp || '').replace(/\D/g, '');
-        if (dWa) contacts.push('<a class="btn primary" href="https://wa.me/' + dWa + '?text=' + encodeURIComponent('Ciao ' + DEMO.autore.split(' ')[0] + ', ho visto la demo del listino.') + '" target="_blank" rel="noopener">Scrivimi su WhatsApp</a>');
-        if (DEMO.telefono) contacts.push('<a class="btn secondary" href="tel:' + esc(DEMO.telefono.replace(/[^\d+]/g, '')) + '">Chiamami</a>');
-        if (DEMO.email) contacts.push('<a class="btn secondary" href="mailto:' + esc(DEMO.email) + '?subject=' + encodeURIComponent('Listino piantine') + '">Scrivimi un\'email</a>');
-        document.getElementById('propBody').innerHTML =
-            '<h3 class="sec">Perché l\'ho fatta</h3>' +
-            '<p class="note">' + esc(DEMO.nota) + '</p>' +
-            '<p class="note-by">' + esc(DEMO.autore) + '</p>' +
-            '<h3 class="sec">Cosa cambia per il vivaio</h3>' +
-            '<ul class="benefits">' + DEMO.vantaggi.map(v => '<li>' + esc(v) + '</li>').join('') + '</ul>' +
-            '<h3 class="sec">Se vi piace</h3>' +
-            '<ul class="offer">' + DEMO.offerta.map(o =>
-                '<li><h4>' + esc(o.titolo) + '</h4><span class="price">' + esc(o.prezzo) + (o.nota ? '<small>' + esc(o.nota) + '</small>' : '') + '</span><p>' + esc(o.testo) + '</p></li>').join('') + '</ul>' +
-            '<p class="small">' + esc(DEMO.notaPrezzi) + '</p>' +
-            '<h3 class="sec">Ne parliamo?</h3>' +
-            (contacts.length ? '<div class="contact">' + contacts.join('') + '</div>' : '<p>Rispondetemi pure al messaggio con cui vi ho mandato questo link.</p>');
-
-        document.getElementById('coverFor').textContent = 'Una proposta per i ' + CONFIG.nome + (CONFIG.luogo ? ' di ' + CONFIG.luogo : '');
+        const title = document.getElementById('coverTitle');
+        // parole del titolo una per una, per l'entrata a fuoco
+        title.innerHTML = title.textContent.split(' ').map((w, i) => '<span class="w" style="--d:' + (200 + i * 60) + 'ms">' + esc(w) + '</span>').join(' ');
+        document.getElementById('coverFor').textContent = 'Demo per i ' + CONFIG.nome + (CONFIG.luogo ? ' di ' + CONFIG.luogo : '');
         document.getElementById('coverLead').textContent = 'Lo stesso listino del modulo di richiesta, da sfogliare con le foto delle specie, scegliere e inviare al vivaio già completo.';
         document.getElementById('coverBy').textContent = 'Demo non ufficiale realizzata da ' + DEMO.autore + '.';
         document.getElementById('bench').innerHTML = bench();
+        benchLean();
         document.getElementById('coverGo').addEventListener('click', closeCover);
-        document.getElementById('coverProp').addEventListener('click', () => { closeCover(); openSheet('proposal'); });
+        // toccando il nome in alto si rivede la copertina
+        const bb = document.getElementById('brandBtn');
+        bb.classList.add('link'); bb.removeAttribute('tabindex');
+        bb.setAttribute('aria-label', CONFIG.nome + ', rivedi la presentazione');
+        bb.addEventListener('click', showCover);
 
         let seen = null;
-        try { seen = localStorage.getItem(COVER_KEY); } catch (e) {}
-        if (!seen && !/o=/.test(location.hash)) {
-            cover.hidden = false;
-            document.body.classList.add('locked');
-            cover.focus({ preventScroll: true });
-        }
-    }
+        try { seen = sessionStorage.getItem(COVER_KEY); } catch (e) {}
+        if (!seen && !/o=/.test(location.hash)) showCover();
+        else revealCards(0);
+    } else revealCards(0);
 
     /* ---- Avvio ---- */
     qtys.forEach(syncStepper);
@@ -1265,6 +1419,7 @@
     loadForm();
     loadSaved();
     calculateTotal();
+    booting = false;
     loadThumbs();
 
     // la barra totale cambia altezza (righe a capo, safe area): il fondo pagina la segue
