@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Listino Piante Interattivo</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,7 +15,7 @@
             --ink: #20201E;         /* primary text */
             --muted: #75726B;       /* secondary text */
             --line: #E7E3D8;        /* borders */
-            --accent: #C96442;      /* Claude clay */
+            --accent: #C96442;      /* terracotta */
             --accent-hover: #AD5132;
             --accent-tint: #F5E8E1;
             --dot-h: #6E8B7A;       /* size */
@@ -29,9 +29,12 @@
             background-color: var(--bg);
             color: var(--ink);
             margin: 0;
-            padding: 24px 16px 140px;
+            /* lati e fondo rispettano notch / home indicator (vedi CLAUDE.md) */
+            padding: 24px max(16px, env(safe-area-inset-right)) calc(140px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
             -webkit-font-smoothing: antialiased;
         }
+        button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+        a { -webkit-tap-highlight-color: transparent; }
         .container {
             max-width: 1040px;
             margin: 0 auto;
@@ -64,7 +67,7 @@
             position: sticky; top: 0; z-index: 1000;
             background: var(--card);
             margin: -32px -32px 0;
-            padding: 28px 32px 14px;
+            padding: calc(28px + env(safe-area-inset-top)) 32px 14px;
             border-radius: 16px 16px 0 0;
             border-bottom: 1px solid var(--line);
             box-shadow: 0 8px 16px -12px rgba(32,32,30,0.18);
@@ -75,7 +78,7 @@
             width: 100%;
             padding: 13px 16px;
             font-family: inherit;
-            font-size: 15px;
+            font-size: 16px; /* sotto i 16px iOS zooma al focus */
             color: var(--ink);
             background: var(--bg);
             border: 1px solid var(--line);
@@ -160,8 +163,7 @@
             border-bottom: 2px solid var(--accent);
         }
         thead th small { font-weight: 400; color: var(--muted); }
-        th:nth-child(2), th:nth-child(3), th:nth-child(4),
-        td:nth-child(2), td:nth-child(3), td:nth-child(4) { text-align: center; width: 150px; }
+        th.qh, td.qcell { text-align: center; width: 150px; }
         tbody tr:hover { background: var(--tint); }
         td strong {
             font-family: 'Source Serif 4', Georgia, serif;
@@ -192,6 +194,7 @@
         .df { background: var(--dot-f); }
 
         .empty-cell { color: #C9C5BA; }
+        .na-m { display: none; } /* "non disponibile" esteso: solo mobile */
         .size-tag { display: none; } /* visibile solo su mobile (card) */
 
         /* Quantity stepper */
@@ -218,7 +221,7 @@
             width: 36px; height: 32px;
             border: none; background: transparent;
             text-align: center;
-            font-family: inherit; font-size: 14px; font-weight: 500; color: var(--ink);
+            font-family: inherit; font-size: 16px; font-weight: 500; color: var(--ink);
             -moz-appearance: textfield;
         }
         .stepper.active .qty { color: var(--accent-hover); }
@@ -244,12 +247,14 @@
             position: fixed; inset: 0; z-index: 2000;
             background: rgba(32,32,30,0.55);
             display: none; align-items: center; justify-content: center;
-            padding: 20px;
+            padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right))
+                     max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
         }
         .modal-overlay.open { display: flex; }
         .modal-card {
             background: var(--card); border: 1px solid var(--line);
             border-radius: 16px; width: 100%; max-width: 520px; max-height: 88vh;
+            max-height: calc(100dvh - max(20px, env(safe-area-inset-top)) - max(20px, env(safe-area-inset-bottom)));
             overflow: auto; position: relative;
             box-shadow: 0 24px 60px rgba(0,0,0,0.28);
         }
@@ -272,13 +277,19 @@
         .modal-latin { font-style: italic; color: var(--muted); margin: 0 0 14px; font-size: 15px; }
         .modal-text { font-size: 14px; line-height: 1.6; color: var(--ink); margin: 14px 0 16px; }
         .modal-link {
-            display: inline-block; font-size: 13.5px; font-weight: 500;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 13.5px; font-weight: 500;
             color: var(--accent); text-decoration: none; font-family: inherit;
             background: transparent; cursor: pointer;
             border: 1px solid var(--accent); padding: 8px 14px; border-radius: 8px;
             transition: all 0.15s;
         }
         .modal-link:hover { background: var(--accent); color: #fff; }
+        .modal-link.primary { background: var(--accent); color: #fff; }
+        .modal-link.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+        .modal-link[hidden] { display: none; }
+        .modal-credit { font-size: 11.5px; line-height: 1.5; color: var(--muted); margin: 14px 0 0; }
+        .modal-credit a { color: var(--muted); }
         .spinner {
             width: 30px; height: 30px;
             border: 3px solid var(--line); border-top-color: var(--accent);
@@ -293,7 +304,7 @@
             background: var(--card);
             box-shadow: 0 -4px 20px rgba(32,32,30,0.08);
             border-top: 1px solid var(--line);
-            padding: 14px 28px;
+            padding: 14px max(28px, env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) max(28px, env(safe-area-inset-left));
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -343,43 +354,69 @@
         .order-actions { display: flex; gap: 8px; flex-wrap: wrap; }
         .order-msg { font-size: 13px; color: var(--accent); margin-top: 12px; min-height: 18px; word-break: break-word; }
 
-        /* ---- Mobile: ogni pianta diventa una card ---- */
+        /* ---- Aree tap 44x44 su touch (vedi CLAUDE.md) ---- */
+        @media (max-width: 720px), (pointer: coarse) {
+            .chip { min-height: 44px; padding: 0 16px; }
+            .step { width: 44px; height: 44px; font-size: 20px; }
+            .qty { width: 44px; height: 44px; }
+            .btn-save, .btn-reset, .modal-link { min-height: 44px; }
+            .modal-close { width: 44px; height: 44px; }
+            .plant-name { min-height: 44px; }
+        }
+
+        /* ---- Mobile: ogni pianta diventa una card, un formato per riga ---- */
         @media (max-width: 720px) {
-            body { padding: 16px 10px 158px; }
+            body {
+                padding: 16px max(10px, env(safe-area-inset-right)) calc(170px + env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+            }
             .container { padding: 18px 14px; border-radius: 14px; }
             h1 { font-size: 23px; }
             p.subtitle { font-size: 14px; }
-            .topbar { margin: -18px -14px 0; padding: 16px 14px 12px; }
+            .topbar { margin: -18px -14px 0; padding: calc(16px + env(safe-area-inset-top)) 14px 12px; }
             .topbar .subtitle { display: none; } /* spazio prezioso su mobile */
+
+            /* filtri su una riga scorrevole: con chip da 44px l'header resta basso */
+            .sort-bar {
+                flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none;
+                margin: 12px -14px 0; padding: 0 14px;
+            }
+            .sort-bar::-webkit-scrollbar { display: none; }
+            .sort-bar .chip, .sort-label { flex-shrink: 0; white-space: nowrap; }
 
             .table-wrap { overflow-x: visible; }
             #plantsTable { min-width: 0; }
             thead { display: none; }
             #plantsBody, #plantsBody tr, #plantsTable td { display: block; }
             #plantsBody tr {
-                display: flex; flex-wrap: wrap; gap: 12px 6px;
+                display: flex; flex-direction: column;
                 border: 1px solid var(--line); border-radius: 14px;
-                background: var(--card); padding: 14px; margin-bottom: 12px;
+                background: var(--card); padding: 10px 14px 4px; margin-bottom: 12px;
             }
             #plantsBody tr:hover { background: var(--card); }
             #plantsTable td { border-bottom: none; padding: 0; width: auto; text-align: left; }
-            #plantsTable td:first-child { flex: 0 0 100%; }
+            #plantsTable td:first-child { padding-bottom: 10px; }
             #plantsTable td.qcell {
-                flex: 1 1 0; min-width: 0; text-align: center;
-                display: flex; flex-direction: column; align-items: center; gap: 6px;
+                display: flex; align-items: center; justify-content: space-between; gap: 10px;
+                border-top: 1px solid var(--line); padding: 6px 0;
             }
-            #plantsTable td.qcell.na { opacity: 0.45; }
-            .size-tag { display: flex; flex-direction: column; line-height: 1.25; }
-            .size-tag b { font-size: 12px; font-weight: 600; color: var(--ink); }
-            .size-tag i { font-size: 10.5px; font-style: normal; color: var(--muted); }
+            #plantsTable td.qcell.na { opacity: 0.5; padding: 8px 0; }
+            td.qcell.na .size-tag { flex-direction: row; align-items: baseline; gap: 8px; }
+            .na-d { display: none; }
+            .na-m { display: inline; font-size: 13px; color: var(--muted); }
+            .size-tag { display: flex; flex-direction: column; line-height: 1.3; }
+            .size-tag b { font-size: 14px; font-weight: 600; color: var(--ink); }
+            .size-tag i { font-size: 12px; font-style: normal; color: var(--muted); }
             .plant-name { font-size: 17px; }
-            .stepper .step { width: 26px; height: 30px; font-size: 16px; }
-            .qty { width: 30px; height: 30px; }
 
-            .summary-dashboard { padding: 10px 14px; gap: 6px 10px; border-radius: 14px 14px 0 0; }
+            .summary-dashboard {
+                padding: 10px max(14px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+                gap: 6px 10px; border-radius: 14px 14px 0 0;
+            }
             .summary-label { font-size: 10px; margin-bottom: 1px; }
             .summary-value { font-size: 16px; }
             .summary-value.total { font-size: 18px; }
+            .summary-actions { flex: 1 1 100%; }
+            .summary-actions .btn-save { flex: 1; }
             .btn-reset { padding: 9px 14px; font-size: 13px; }
 
             .modal-card { max-width: 100%; }
@@ -390,10 +427,10 @@
 
 <div class="container">
     <div class="topbar">
-    <h1>Listino Prezzi Piante Interattivo</h1>
-    <p class="subtitle">Seleziona le varianti desiderate per calcolare il totale in tempo reale (IVA 10% inclusa). Ordina per più criteri insieme: clicca i filtri nell'ordine di priorità.</p>
+    <h1 id="appTitle">Listino Prezzi Piante Interattivo</h1>
+    <p class="subtitle" id="appSubtitle">Seleziona le varianti desiderate per calcolare il totale in tempo reale (IVA 10% inclusa). Ordina per più criteri insieme: clicca i filtri nell'ordine di priorità.</p>
 
-    <input type="text" id="searchInput" class="search-input" placeholder="Cerca una specie o varietà..." onkeyup="filterTable()">
+    <input type="text" id="searchInput" class="search-input" placeholder="Cerca una specie o varietà..." autocomplete="off" oninput="filterTable()">
 
     <div class="sort-bar">
         <span class="sort-label">Ordina:</span>
@@ -409,12 +446,7 @@
     <div class="table-wrap">
         <table id="plantsTable">
             <thead>
-                <tr>
-                    <th>Specie / Varietà</th>
-                    <th>In contenitore fino a 1 l<br><small>€ 2,00 (escl. IVA)</small></th>
-                    <th>In contenitore fino a 3 l<br><small>€ 3,60 (escl. IVA)</small></th>
-                    <th>Trapianti 2-3 anni / fino a 20 l<br><small>€ 22,00 (escl. IVA)</small></th>
-                </tr>
+                <tr id="headRow"><th>Specie / Varietà</th></tr>
             </thead>
             <tbody id="plantsBody"></tbody>
         </table>
@@ -431,7 +463,7 @@
         <div class="summary-value" id="subtotal">€ 0,00</div>
     </div>
     <div class="summary-item">
-        <div class="summary-label">IVA (10%)</div>
+        <div class="summary-label" id="ivaLabel">IVA (10%)</div>
         <div class="summary-value" id="iva">€ 0,00</div>
     </div>
     <div class="summary-item">
@@ -439,7 +471,7 @@
         <div class="summary-value total" id="total">€ 0,00</div>
     </div>
     <div class="summary-actions">
-        <button class="btn-save" onclick="openOrder()">Salva ordine</button>
+        <button class="btn-save" id="saveBtn" onclick="openOrder()">Salva ordine</button>
         <button class="btn-reset" onclick="resetSelection()">Azzera</button>
     </div>
 </div>
@@ -454,6 +486,8 @@
             <div class="order-list" id="oList"></div>
             <div class="order-total" id="oTotal"></div>
             <div class="order-actions">
+                <a class="modal-link primary" id="oWa" href="#" target="_blank" rel="noopener" hidden>Invia su WhatsApp</a>
+                <a class="modal-link primary" id="oMail" href="#" hidden>Invia per email</a>
                 <button class="modal-link" onclick="copyOrderText()">Copia riepilogo</button>
                 <button class="modal-link" onclick="copyOrderLink()">Copia link</button>
             </div>
@@ -473,13 +507,38 @@
             <div class="meta" id="mMeta"></div>
             <p class="modal-text" id="mText"></p>
             <a class="modal-link" id="mLink" href="#" target="_blank" rel="noopener">Apri su Wikipedia</a>
+            <p class="modal-credit" id="mCredit"></p>
         </div>
     </div>
 </div>
 
 <script>
+    /* ================================================================
+       CONFIGURAZIONE VIVAIO — per un nuovo cliente basta modificare
+       questo blocco, l'elenco PLANTS e i nomi latini (LATIN) qui sotto.
+       ================================================================ */
+    const CONFIG = {
+        nome: 'Listino Prezzi Piante Interattivo',
+        // {iva} viene sostituito con l'aliquota, es. "10%"
+        sottotitolo: "Seleziona le varianti desiderate per calcolare il totale in tempo reale (IVA {iva} inclusa). Ordina per più criteri insieme: clicca i filtri nell'ordine di priorità.",
+        iva: 0.10,
+        // Formati di vendita: la chiave k (lettera c + numero) è la colonna in PLANTS
+        formati: [
+            { k: 'c1',  etichetta: '1 l',  intestazione: 'In contenitore fino a 1 l',        prezzo: 2.00 },
+            { k: 'c3',  etichetta: '3 l',  intestazione: 'In contenitore fino a 3 l',        prezzo: 3.60 },
+            { k: 'c20', etichetta: '20 l', intestazione: 'Trapianti 2-3 anni / fino a 20 l', prezzo: 22.00 }
+        ],
+        // Generi evidenziati in colore (vuoto = nessuno)
+        evidenzia: ["Acero","Ippocastano","Ontano","Betulla","Carpino","Katsura","Nocciolo","Faggio","Frassino","Pioppo","Salice","Olmo"],
+        // Dove arrivano gli ordini. Vuoto = pulsante nascosto.
+        whatsapp: '',   // numero con prefisso internazionale, es. '393331234567'
+        email: '',      // es. 'ordini@vivaio.it'
+        // Chiave di salvataggio nel browser: cambiala se più listini stanno sullo stesso dominio
+        id: 'listino-piante-ordine'
+    };
+
     /* ---- Dati botanici reali ----
-       c1/c3/c20 = disponibilità contenitore (1l €2,00 / 3l €3,60 / 20l €22,00)
+       c1/c3/c20 = disponibilità per formato (vedi CONFIG.formati)
        h  = altezza a maturità in metri (indicativa)
        g  = velocità di crescita  1=lenta 2=media 3=rapida
        o  = tolleranza all'ombra  1=pieno sole 2=mezz'ombra 3=ombra
@@ -527,7 +586,7 @@
         {n:"Gelso nero", c1:0,c3:1,c20:1, h:12,  g:2,o:1,f:2},
         {n:"Ginepro comune", c1:1,c3:0,c20:1, h:6,   g:1,o:1,f:2},
         {n:"Ginestra", c1:0,c3:1,c20:0, h:3,   g:3,o:1,f:0},
-        {n:"Ginko biloba", c1:0,c3:0,c20:0, h:35,  g:2,o:2,f:1},
+        {n:"Ginkgo biloba", c1:0,c3:0,c20:0, h:35,  g:2,o:2,f:1},
         {n:"Ippocastano", c1:0,c3:0,c20:0, h:30,  g:2,o:2,f:1},
         {n:"Katsura", c1:0,c3:0,c20:0, h:20,  g:2,o:2,f:0},
         {n:"Lauroceraso", c1:1,c3:0,c20:1, h:6,   g:3,o:3,f:1},
@@ -573,13 +632,12 @@
         {n:"Viburno tino", c1:1,c3:0,c20:1, h:3,   g:2,o:3,f:1}
     ];
 
-    const PRICES = { c1: 2.0, c3: 3.6, c20: 22.0 };
-    const SIZE = { c1: { l: '1 l', p: '€ 2,00' }, c3: { l: '3 l', p: '€ 3,60' }, c20: { l: '20 l', p: '€ 22,00' } };
+    const PRICES = {}, SIZE = {};
+    CONFIG.formati.forEach(f => { PRICES[f.k] = f.prezzo; SIZE[f.k] = { l: f.etichetta, p: euro(f.prezzo) }; });
+    const IVA_PCT = (CONFIG.iva * 100).toLocaleString('it-IT') + '%';
     const G_LABEL = ["", "crescita lenta", "crescita media", "crescita rapida"];
     const O_LABEL = ["", "pieno sole", "mezz'ombra", "ombra"];
     const F_LABEL = ["senza frutto", "bacche", "frutto edule"];
-    // Generi richiesti dal cliente: evidenziati in accent
-    const REQ = ["Acero","Ippocastano","Ontano","Betulla","Carpino","Katsura","Nocciolo","Faggio","Frassino","Pioppo","Salice","Olmo"];
 
     // Nome scientifico per ogni specie (per recuperare foto/scheda da Wikipedia)
     const LATIN = {
@@ -604,7 +662,7 @@
         "Faggio":"Fagus sylvatica", "Frassino maggiore":"Fraxinus excelsior",
         "Gelso bianco":"Morus alba", "Gelso nero":"Morus nigra",
         "Ginepro comune":"Juniperus communis", "Ginestra":"Spartium junceum",
-        "Ginko biloba":"Ginkgo biloba", "Ippocastano":"Aesculus hippocastanum",
+        "Ginkgo biloba":"Ginkgo biloba", "Ippocastano":"Aesculus hippocastanum",
         "Katsura":"Cercidiphyllum japonicum", "Lauroceraso":"Prunus laurocerasus",
         "Lavanda angustifolia":"Lavandula angustifolia", "Leccio":"Quercus ilex",
         "Ligustro cinese":"Ligustrum lucidum", "Ligustro giapponese":"Ligustrum japonicum",
@@ -628,9 +686,11 @@
         "Viburno opalo":"Viburnum opulus", "Viburno tino":"Viburnum tinus"
     };
 
+    function esc(t) { return String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]); }
+
     function cell(avail, key, i) {
-        const tag = '<span class="size-tag"><b>' + SIZE[key].l + '</b><i>' + SIZE[key].p + '</i></span>';
-        if (!avail) return '<td class="qcell na">' + tag + '<span class="empty-cell">–</span></td>';
+        const tag = '<span class="size-tag"><b>' + esc(SIZE[key].l) + '</b><i>' + SIZE[key].p + '</i></span>';
+        if (!avail) return '<td class="qcell na">' + tag + '<span class="empty-cell"><span class="na-d">–</span><span class="na-m">non disponibile</span></span></td>';
         return '<td class="qcell">' + tag + '<div class="stepper">' +
             '<button type="button" class="step" onclick="changeQty(this,-1)">−</button>' +
             '<input type="number" class="qty" data-price="' + PRICES[key] + '" data-i="' + i + '" data-k="' + key + '" min="0" value="0" inputmode="numeric" oninput="onQtyInput(this)">' +
@@ -647,6 +707,17 @@
         '</div>';
     }
 
+    /* ---- Intestazioni dal CONFIG ---- */
+    document.title = CONFIG.nome;
+    document.getElementById('appTitle').textContent = CONFIG.nome;
+    document.getElementById('appSubtitle').textContent = CONFIG.sottotitolo.replace('{iva}', IVA_PCT);
+    document.getElementById('ivaLabel').textContent = 'IVA (' + IVA_PCT + ')';
+    if (CONFIG.whatsapp || CONFIG.email) document.getElementById('saveBtn').textContent = 'Invia ordine';
+    const headRow = document.getElementById('headRow');
+    CONFIG.formati.forEach(f => {
+        headRow.insertAdjacentHTML('beforeend', '<th class="qh">' + esc(f.intestazione) + '<br><small>' + euro(f.prezzo) + ' (escl. IVA)</small></th>');
+    });
+
     const tbody = document.getElementById('plantsBody');
     PLANTS.forEach((p, i) => {
         const tr = document.createElement('tr');
@@ -656,11 +727,11 @@
         tr.dataset.g = p.g;
         tr.dataset.o = p.o;
         tr.dataset.f = p.f;
-        const req = REQ.some(r => p.n.indexOf(r) > -1);
+        const req = CONFIG.evidenzia.some(r => p.n.indexOf(r) > -1);
         const icon = '<svg class="pn-ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>';
         tr.innerHTML =
-            '<td><button type="button" class="plant-name ' + (req ? 'req' : '') + '" title="Mostra foto e scheda" onclick="openPlant(' + i + ')">' + p.n + icon + '</button>' + meta(p) + '</td>' +
-            cell(p.c1, 'c1', i) + cell(p.c3, 'c3', i) + cell(p.c20, 'c20', i);
+            '<td><button type="button" class="plant-name ' + (req ? 'req' : '') + '" title="Mostra foto e scheda" onclick="openPlant(' + i + ')">' + esc(p.n) + icon + '</button>' + meta(p) + '</td>' +
+            CONFIG.formati.map(f => cell(p[f.k], f.k, i)).join('');
         tbody.appendChild(tr);
     });
 
@@ -712,15 +783,46 @@
 
     async function wikiQuery(title, lang) {
         const url = 'https://' + lang + '.wikipedia.org/w/api.php?action=query&format=json&origin=*' +
-            '&prop=pageimages|extracts&exintro=1&explaintext=1&redirects=1&pithumbsize=640&titles=' +
+            '&prop=pageimages|extracts&piprop=thumbnail|name&exintro=1&explaintext=1&redirects=1&pithumbsize=640&titles=' +
             encodeURIComponent(title);
         try {
             const res = await fetch(url);
             const data = await res.json();
             const page = Object.values(data.query.pages)[0];
             if (!page || page.missing !== undefined) return null;
-            return { img: page.thumbnail && page.thumbnail.source, extract: page.extract || '', title: page.title, lang: lang };
+            return { img: page.thumbnail && page.thumbnail.source, file: page.pageimage, extract: page.extract || '', title: page.title, lang: lang };
         } catch (e) { return null; }
+    }
+
+    // Autore e licenza della foto: le immagini di Wikimedia Commons vanno attribuite
+    async function wikiCredit(file, lang) {
+        const url = 'https://' + lang + '.wikipedia.org/w/api.php?action=query&format=json&origin=*' +
+            '&prop=imageinfo&iiprop=extmetadata|url&iiextmetadatafilter=Artist|LicenseShortName&titles=' +
+            encodeURIComponent('File:' + file);
+        try {
+            const data = await (await fetch(url)).json();
+            const ii = (Object.values(data.query.pages)[0].imageinfo || [])[0];
+            if (!ii) return null;
+            const m = ii.extmetadata || {};
+            const artist = m.Artist ? new DOMParser().parseFromString(m.Artist.value, 'text/html').body.textContent.trim() : '';
+            return { artist: artist, license: m.LicenseShortName ? m.LicenseShortName.value : '', url: ii.descriptionurl };
+        } catch (e) { return null; }
+    }
+
+    function renderCredit(info) {
+        const box = document.getElementById('mCredit');
+        box.textContent = '';
+        if (!info) return;
+        if (info.img) {
+            const c = info.credit || {};
+            const a = document.createElement('a');
+            a.href = c.url || ('https://' + info.lang + '.wikipedia.org/wiki/File:' + encodeURIComponent(info.file || ''));
+            a.target = '_blank'; a.rel = 'noopener';
+            a.textContent = 'Foto: ' + [c.artist, c.license].filter(Boolean).join(' · ') + (c.artist || c.license ? '' : 'Wikimedia Commons');
+            box.appendChild(a);
+            box.appendChild(document.createTextNode(' — '));
+        }
+        box.appendChild(document.createTextNode('Testo da Wikipedia, licenza CC BY-SA 4.0'));
     }
 
     async function openPlant(i) {
@@ -732,6 +834,7 @@
         document.getElementById('mLatin').textContent = latin;
         document.getElementById('mMeta').innerHTML = meta(p);
         document.getElementById('mText').textContent = '';
+        document.getElementById('mCredit').textContent = '';
         const link = document.getElementById('mLink');
         link.textContent = 'Apri su Wikipedia';
         link.style.display = 'none';
@@ -745,6 +848,7 @@
             info = await wikiQuery(latin, 'it');
             if (!info || !info.img) { const en = await wikiQuery(latin, 'en'); if (en && en.img) info = en; else info = info || en; }
             if (!info || !info.img) { const it2 = await wikiQuery(p.n, 'it'); if (it2 && it2.img) info = it2; else info = info || it2; }
+            if (info && info.img && info.file) info.credit = await wikiCredit(info.file, info.lang);
             wikiCache[latin] = info;
         }
 
@@ -752,7 +856,10 @@
         if (document.getElementById('mName').textContent !== p.n) return;
 
         if (info && info.img) {
-            media.innerHTML = '<img src="' + info.img + '" alt="' + p.n + '">';
+            const img = document.createElement('img');
+            img.src = info.img; img.alt = p.n;
+            media.textContent = '';
+            media.appendChild(img);
         } else {
             media.innerHTML = '<div class="ph">Foto non disponibile al momento.<br>Apri la scheda per vedere le immagini.</div>';
         }
@@ -766,7 +873,8 @@
             link.href = 'https://it.wikipedia.org/w/index.php?search=' + encodeURIComponent(latin);
             link.textContent = 'Cerca su Wikipedia';
         }
-        link.style.display = 'inline-block';
+        link.style.display = '';
+        renderCredit(info);
     }
 
     function closeModal() {
@@ -808,7 +916,7 @@
             const q = parseInt(inp.value, 10) || 0;
             if (q > 0) { subtotal += q * parseFloat(inp.dataset.price); items += q; }
         });
-        const iva = subtotal * 0.10;
+        const iva = subtotal * CONFIG.iva;
         document.getElementById('count').innerText = items;
         document.getElementById('subtotal').innerText = euro(subtotal);
         document.getElementById('iva').innerText = euro(iva);
@@ -817,7 +925,15 @@
     }
 
     /* ---- Salvataggio selezione (localStorage + link condivisibile) ---- */
-    const STORE = 'listino-piante-ordine';
+    const STORE = CONFIG.id;
+    // Impronta dell'elenco piante: la selezione è salvata per posizione, quindi se il
+    // vivaio aggiunge o toglie piante un vecchio link/salvataggio non va applicato
+    // (finirebbe sulle piante sbagliate). Cambiare solo i prezzi non la modifica.
+    const LIST_V = (function () {
+        const t = PLANTS.map(p => p.n).join('|'); let h = 5381;
+        for (let i = 0; i < t.length; i++) h = ((h << 5) + h + t.charCodeAt(i)) | 0;
+        return (h >>> 0).toString(36);
+    })();
     function getOrder() {
         const o = {};
         document.querySelectorAll('.qty').forEach(inp => {
@@ -833,10 +949,10 @@
         });
         calculateTotal();
     }
-    function saveLocal() { try { localStorage.setItem(STORE, JSON.stringify(getOrder())); } catch (e) {} }
+    function saveLocal() { try { localStorage.setItem(STORE, JSON.stringify({ v: LIST_V, o: getOrder() })); } catch (e) {} }
     function encodeOrder(o) {
         const p = [];
-        for (const i in o) for (const k in o[i]) p.push(i + '-' + k.slice(1) + '-' + o[i][k]);
+        for (const i in o) for (const k in o[i]) p.push(i + '-' + k.replace(/^c/, '') + '-' + o[i][k]);
         return p.join('.');
     }
     function decodeOrder(s) {
@@ -850,36 +966,53 @@
     function loadSaved() {
         let o = null;
         const h = (location.hash || '').match(/o=([^&]+)/);
-        if (h) { try { o = decodeOrder(decodeURIComponent(h[1])); } catch (e) {} }
-        if (!o || !Object.keys(o).length) { try { o = JSON.parse(localStorage.getItem(STORE) || 'null'); } catch (e) {} }
+        const v = (location.hash || '').match(/v=([^&]+)/);
+        if (h && (!v || v[1] === LIST_V)) { try { o = decodeOrder(decodeURIComponent(h[1])); } catch (e) {} }
+        if (!o || !Object.keys(o).length) {
+            try {
+                const s = JSON.parse(localStorage.getItem(STORE) || 'null');
+                // formato vecchio = oggetto selezione senza impronta
+                o = (s && s.o && s.v) ? (s.v === LIST_V ? s.o : null) : s;
+            } catch (e) {}
+        }
         if (o && Object.keys(o).length) applyOrder(o);
     }
 
     /* ---- Modale "La tua selezione" (riepilogo / copia / link) ---- */
     function openOrder() {
+        lastFocus = document.activeElement;
         const o = getOrder(); const rows = []; let items = 0, sub = 0;
         PLANTS.forEach((p, i) => {
             if (o[i]) for (const k in o[i]) {
                 const q = o[i][k]; items += q; sub += q * PRICES[k];
-                rows.push('<div class="oitem"><span>' + p.n + ' <em>' + SIZE[k].l + '</em></span><span>×' + q + '</span></div>');
+                rows.push('<div class="oitem"><span>' + esc(p.n) + ' <em>' + esc(SIZE[k].l) + '</em></span><span>×' + q + '</span></div>');
             }
         });
         document.getElementById('oCount').textContent = items ? (items + ' piante') : '';
         document.getElementById('oList').innerHTML = rows.length ? rows.join('') : '<p class="order-empty">Nessuna pianta selezionata.</p>';
-        document.getElementById('oTotal').innerHTML = rows.length ? ('Totale con IVA: <b>' + euro(sub * 1.10) + '</b>') : '';
+        document.getElementById('oTotal').innerHTML = rows.length ? ('Totale con IVA: <b>' + euro(sub * (1 + CONFIG.iva)) + '</b>') : '';
         document.getElementById('oMsg').textContent = '';
+        const msg = orderText() + '\n\nApri la selezione: ' + orderLink();
+        const wa = document.getElementById('oWa'), mail = document.getElementById('oMail');
+        const waNum = String(CONFIG.whatsapp || '').replace(/\D/g, '');
+        wa.hidden = !(rows.length && waNum);
+        mail.hidden = !(rows.length && CONFIG.email);
+        wa.href = 'https://wa.me/' + waNum + '?text=' + encodeURIComponent(msg);
+        mail.href = 'mailto:' + (CONFIG.email || '') + '?subject=' + encodeURIComponent('Ordine piante') + '&body=' + encodeURIComponent(msg);
         document.getElementById('orderModal').classList.add('open');
         document.body.style.overflow = 'hidden';
     }
     function orderText() {
         const o = getOrder(); const lines = ['Ordine piante:']; let sub = 0;
         PLANTS.forEach((p, i) => { if (o[i]) for (const k in o[i]) { const q = o[i][k]; sub += q * PRICES[k]; lines.push('- ' + p.n + ' (' + SIZE[k].l + ') x' + q); } });
-        lines.push('Totale con IVA: ' + euro(sub * 1.10));
+        lines.push('Imponibile: ' + euro(sub));
+        lines.push('IVA ' + IVA_PCT + ': ' + euro(sub * CONFIG.iva));
+        lines.push('Totale con IVA: ' + euro(sub * (1 + CONFIG.iva)));
         return lines.join('\n');
     }
     function orderLink() {
         const enc = encodeOrder(getOrder());
-        return location.origin + location.pathname + (enc ? '#o=' + enc : '');
+        return location.origin + location.pathname + (enc ? '#o=' + enc + '&v=' + LIST_V : '');
     }
     function flash(msg) { document.getElementById('oMsg').textContent = msg; }
     async function copyToClip(text, okMsg) {
@@ -887,6 +1020,7 @@
         catch (e) {
             const ta = document.createElement('textarea');
             ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+            ta.style.fontSize = '16px'; // anche nascosta: sotto i 16px iOS zooma al focus
             document.body.appendChild(ta); ta.focus(); ta.select();
             try { document.execCommand('copy'); flash(okMsg); } catch (e2) { flash(text); }
             document.body.removeChild(ta);
@@ -917,6 +1051,12 @@
 
     // ripristina la selezione salvata (link condiviso o localStorage)
     loadSaved();
+
+    // la barra totali cambia altezza (righe a capo, safe area): il fondo pagina la segue
+    const dash = document.querySelector('.summary-dashboard');
+    function padForDash() { document.body.style.paddingBottom = (dash.offsetHeight + 20) + 'px'; }
+    if (window.ResizeObserver) new ResizeObserver(padForDash).observe(dash);
+    padForDash();
 </script>
 
 </body>
