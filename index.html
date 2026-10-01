@@ -2,488 +2,516 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Listino Piante Interattivo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#1F3D33">
+    <title>Listino piantine forestali</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231F3D33'/%3E%3Cpath d='M16 26V14' stroke='%23CFE29A' stroke-width='2.4' stroke-linecap='round'/%3E%3Cpath d='M16 16c0-5 3-8 8-8 0 5-3 8-8 8zM16 18c0-4-3-6.5-7-6.5 0 4 3 6.5 7 6.5z' fill='%23CFE29A'/%3E%3C/svg%3E">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #F4F2EC;          /* warm cream page */
-            --card: #FCFBF8;        /* surface */
-            --tint: #F0EDE4;        /* subtle fill / zebra */
-            --ink: #20201E;         /* primary text */
-            --muted: #75726B;       /* secondary text */
-            --line: #E7E3D8;        /* borders */
-            --accent: #C96442;      /* Claude clay */
-            --accent-hover: #AD5132;
-            --accent-tint: #F5E8E1;
-            --dot-h: #6E8B7A;       /* size */
-            --dot-g: #C96442;       /* growth */
-            --dot-o: #7C8B9E;       /* shade */
-            --dot-f: #B07A3C;       /* fruit */
+            --bosco: #1F3D33;       /* abete: marchio, intestazione, azioni */
+            --bosco-2: #2B5144;
+            --muschio: #5E7B4F;     /* icone, bordi attivi */
+            --germoglio: #CFE29A;   /* piantina scelta */
+            --germoglio-2: #EDF4D6;
+            --corteccia: #7A5A43;
+            --carta: #F2F5EE;
+            --card: #FCFDFA;
+            --chiaro: #F5F8F0;      /* testo chiaro su verde, mai bianco puro */
+            --ink: #18231E;
+            --muted: #5B6861;
+            --line: #DCE2DA;
+            --err: #B3261E;
+            --serif: 'Libre Caslon Text', Georgia, 'Times New Roman', serif;
+            --sans: 'Fira Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            --ease-out: cubic-bezier(.16, 1, .3, 1);    /* entrate */
+            --ease-quart: cubic-bezier(.25, 1, .5, 1);  /* micro-interazioni */
+            --ease-in: cubic-bezier(.7, 0, .84, 0);     /* uscite */
         }
         * { box-sizing: border-box; }
+        html { -webkit-text-size-adjust: 100%; }
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg);
-            color: var(--ink);
             margin: 0;
-            padding: 24px 16px 140px;
+            background: var(--carta);
+            color: var(--ink);
+            font: 400 16px/1.5 var(--sans);
             -webkit-font-smoothing: antialiased;
+            padding-bottom: calc(96px + env(safe-area-inset-bottom));
         }
-        .container {
-            max-width: 1040px;
-            margin: 0 auto;
-            background: var(--card);
-            padding: 32px;
-            border: 1px solid var(--line);
-            border-radius: 16px;
-            box-shadow: 0 1px 2px rgba(32,32,30,0.04);
+        body.locked { overflow: hidden; }
+        button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+        a { color: inherit; -webkit-tap-highlight-color: transparent; }
+        [hidden] { display: none !important; }
+        :focus-visible { outline: 3px solid var(--muschio); outline-offset: 2px; }
+        .top :focus-visible, .cover :focus-visible { outline-color: var(--germoglio); }
+        .skip {
+            position: absolute; left: 12px; top: -60px; z-index: 200;
+            background: var(--germoglio); color: var(--bosco); padding: 10px 14px; border-radius: 10px; font-weight: 600;
         }
-        h1 {
-            font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
-            font-weight: 600;
-            color: var(--ink);
-            font-size: 30px;
-            letter-spacing: -0.01em;
-            margin: 0 0 6px;
-            text-align: center;
-        }
-        p.subtitle {
-            font-family: 'Source Serif 4', Georgia, serif;
-            text-align: center;
-            color: var(--muted);
-            font-size: 16px;
-            margin: 0 auto 22px;
-            max-width: 640px;
-        }
+        .skip:focus { top: calc(12px + env(safe-area-inset-top)); }
 
-        /* Intestazione sticky (specchio della barra totali in basso) */
-        .topbar {
-            position: sticky; top: 0; z-index: 1000;
-            background: var(--card);
-            margin: -32px -32px 0;
-            padding: 28px 32px 14px;
-            border-radius: 16px 16px 0 0;
-            border-bottom: 1px solid var(--line);
-            box-shadow: 0 8px 16px -12px rgba(32,32,30,0.18);
+        /* ---- Intestazione ---- */
+        .top {
+            position: sticky; top: 0; z-index: 50;
+            background: var(--bosco); color: var(--chiaro);
+            padding: calc(14px + env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 12px max(16px, env(safe-area-inset-left));
         }
-
-        /* Controls */
-        .search-input {
-            width: 100%;
-            padding: 13px 16px;
-            font-family: inherit;
-            font-size: 15px;
-            color: var(--ink);
-            background: var(--bg);
-            border: 1px solid var(--line);
-            border-radius: 10px;
-            outline: none;
-            transition: border-color 0.15s, box-shadow 0.15s;
+        .top-in { max-width: 1120px; margin: 0 auto; }
+        .brand { margin: 0 0 12px; min-width: 0; font-size: inherit; font-weight: inherit; }
+        .brand-btn {
+            display: block; max-width: 100%; min-height: 44px; padding: 0; border: 0; background: none;
+            color: inherit; text-align: left; cursor: default;
         }
-        .search-input::placeholder { color: #A8A49A; }
-        .search-input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px var(--accent-tint);
+        .brand-btn.link { cursor: pointer; }
+        .brand-name { display: block; font-family: var(--serif); font-weight: 700; font-size: 22px; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .brand-place { display: block; font-size: 14px; color: rgba(245,248,240,.72); margin-top: 2px; }
+        .search { position: relative; display: block; }
+        .search svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+        .search input {
+            width: 100%; height: 48px; padding: 0 14px 0 44px;
+            font: inherit; font-size: 16px; color: var(--ink);
+            background: var(--card); border: 0; border-radius: 12px;
+            transition: box-shadow .2s var(--ease-quart);
         }
-
-        .sort-bar {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 8px;
-            margin: 18px 0 6px;
+        .search input:focus { outline: none; box-shadow: 0 0 0 3px var(--germoglio); }
+        .search input::placeholder { color: #737E78; }
+        .chips {
+            display: flex; align-items: center; gap: 8px;
+            overflow-x: auto; scrollbar-width: none;
+            margin: 12px calc(-1 * max(16px, env(safe-area-inset-right))) 0 calc(-1 * max(16px, env(safe-area-inset-left)));
+            padding: 0 max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left));
         }
-        .sort-label {
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            color: var(--muted);
-            margin-right: 4px;
-        }
+        .chips::-webkit-scrollbar { display: none; }
         .chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-family: inherit;
-            font-size: 13.5px;
-            font-weight: 500;
-            color: var(--ink);
-            background: var(--tint);
-            border: 1px solid var(--line);
-            padding: 7px 13px;
-            border-radius: 999px;
-            cursor: pointer;
-            transition: all 0.15s;
+            flex-shrink: 0; display: inline-flex; align-items: center; gap: 8px;
+            min-height: 44px; padding: 0 16px; border-radius: 999px;
+            border: 1px solid rgba(245,248,240,.3); background: transparent; color: var(--chiaro);
+            font-size: 15px; font-weight: 500; white-space: nowrap;
+            transition: background .2s var(--ease-quart), color .2s var(--ease-quart), border-color .2s var(--ease-quart), transform .12s var(--ease-quart);
         }
-        .chip:hover { border-color: var(--accent); color: var(--accent); }
-        .chip.active {
-            background: var(--accent-tint);
-            border-color: var(--accent);
-            color: var(--accent-hover);
-        }
+        .chip:hover { border-color: rgba(245,248,240,.65); }
+        .chip[aria-pressed="true"] { background: var(--germoglio); border-color: var(--germoglio); color: var(--bosco); }
         .chip .badge {
-            display: none;
-            align-items: center;
-            justify-content: center;
-            width: 17px;
-            height: 17px;
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--card);
-            background: var(--accent);
-            border-radius: 50%;
-        }
-        .chip-clear {
-            background: transparent;
-            color: var(--muted);
-            border-style: dashed;
-        }
-        .chip-clear:hover { color: var(--accent); }
-
-        /* Table */
-        .table-wrap { overflow-x: auto; margin-top: 14px; }
-        table { width: 100%; border-collapse: collapse; min-width: 720px; }
-        th, td {
-            padding: 12px 14px;
-            text-align: left;
-            border-bottom: 1px solid var(--line);
-            vertical-align: middle;
-        }
-        thead th {
-            background: var(--tint);
-            color: var(--ink);
-            font-weight: 600;
-            font-size: 13px;
-            border-bottom: 2px solid var(--accent);
-        }
-        thead th small { font-weight: 400; color: var(--muted); }
-        th:nth-child(2), th:nth-child(3), th:nth-child(4),
-        td:nth-child(2), td:nth-child(3), td:nth-child(4) { text-align: center; width: 150px; }
-        tbody tr:hover { background: var(--tint); }
-        td strong {
-            font-family: 'Source Serif 4', Georgia, serif;
-            font-weight: 600;
-            font-size: 16px;
-            color: var(--ink);
-        }
-        td strong.req { color: var(--accent); }
-
-        /* Meta pills under each name */
-        .meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-        .pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 11.5px;
-            color: var(--muted);
-            background: var(--bg);
-            border: 1px solid var(--line);
-            padding: 2px 8px;
-            border-radius: 999px;
-            white-space: nowrap;
-        }
-        .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
-        .dh { background: var(--dot-h); }
-        .dg { background: var(--dot-g); }
-        .do { background: var(--dot-o); }
-        .df { background: var(--dot-f); }
-
-        .empty-cell { color: #C9C5BA; }
-        .size-tag { display: none; } /* visibile solo su mobile (card) */
-
-        /* Quantity stepper */
-        .stepper {
-            display: inline-flex;
-            align-items: center;
-            border: 1px solid var(--line);
-            border-radius: 9px;
-            overflow: hidden;
-            background: var(--bg);
-            transition: border-color 0.15s, background 0.15s;
-        }
-        .stepper.active { border-color: var(--accent); background: var(--accent-tint); }
-        .step {
-            width: 28px; height: 32px;
-            border: none; background: transparent;
-            font-size: 17px; font-weight: 500; color: var(--muted);
-            cursor: pointer; line-height: 1;
-            transition: color 0.15s;
-        }
-        .step:hover { color: var(--accent); }
-        .step:disabled { color: #CFCBC0; cursor: default; }
-        .qty {
-            width: 36px; height: 32px;
-            border: none; background: transparent;
-            text-align: center;
-            font-family: inherit; font-size: 14px; font-weight: 500; color: var(--ink);
-            -moz-appearance: textfield;
-        }
-        .stepper.active .qty { color: var(--accent-hover); }
-        .qty::-webkit-outer-spin-button,
-        .qty::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        .qty:focus { outline: none; }
-
-        /* Clickable plant name */
-        .plant-name {
-            font-family: 'Source Serif 4', Georgia, serif;
-            font-weight: 600; font-size: 16px; color: var(--ink);
-            background: none; border: none; padding: 0; cursor: pointer;
-            text-align: left; display: inline-flex; align-items: center; gap: 7px;
-            transition: color 0.15s;
-        }
-        .plant-name:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
-        .plant-name.req { color: var(--accent); }
-        .pn-ic { color: var(--muted); opacity: 0.55; flex-shrink: 0; transition: color 0.15s, opacity 0.15s; }
-        .plant-name:hover .pn-ic { color: var(--accent); opacity: 1; }
-
-        /* Photo modal */
-        .modal-overlay {
-            position: fixed; inset: 0; z-index: 2000;
-            background: rgba(32,32,30,0.55);
             display: none; align-items: center; justify-content: center;
-            padding: 20px;
+            width: 20px; height: 20px; border-radius: 50%;
+            background: var(--bosco); color: var(--germoglio); font-size: 12px; font-weight: 600;
         }
-        .modal-overlay.open { display: flex; }
-        .modal-card {
-            background: var(--card); border: 1px solid var(--line);
-            border-radius: 16px; width: 100%; max-width: 520px; max-height: 88vh;
-            overflow: auto; position: relative;
-            box-shadow: 0 24px 60px rgba(0,0,0,0.28);
+        .chip .badge:not(:empty) { display: inline-flex; animation: pop .25s var(--ease-out); }
+        .chips-sep { flex: 0 0 1px; align-self: stretch; margin: 8px 4px; background: rgba(245,248,240,.25); }
+        .chips-label { flex-shrink: 0; font-size: 14px; color: rgba(245,248,240,.72); }
+        @media (min-width: 900px) {
+            .chips { flex-wrap: wrap; overflow: visible; margin: 12px 0 0; padding: 0; }
         }
-        .modal-close {
-            position: absolute; top: 12px; right: 12px;
-            width: 34px; height: 34px; border: none; border-radius: 50%;
-            background: rgba(255,255,255,0.9); color: var(--ink);
-            font-size: 22px; line-height: 1; cursor: pointer; z-index: 2;
+
+        /* ---- Elenco ---- */
+        main { max-width: 1120px; margin: 0 auto; padding: 18px max(16px, env(safe-area-inset-right)) 24px max(16px, env(safe-area-inset-left)); }
+        .list-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 16px; margin: 0 2px 14px; font-size: 14px; color: var(--muted); }
+        .list-head p { margin: 0; }
+        #resultCount { color: var(--ink); font-weight: 600; }
+        .grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        @media (min-width: 760px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; } }
+        @media (min-width: 1100px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+        .card {
+            display: grid; grid-template-columns: 72px minmax(0, 1fr); column-gap: 14px; align-content: start;
+            background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+            padding: 14px 14px 4px;
         }
-        .modal-close:hover { background: var(--accent); color: #fff; }
-        .modal-media {
-            width: 100%; aspect-ratio: 4 / 3; background: var(--tint);
+        .card.none { background: transparent; }
+        .thumb {
+            position: relative;
+            width: 72px; height: 72px; padding: 0; border: 0; border-radius: 12px; overflow: hidden;
+            background: var(--germoglio-2); color: var(--muschio);
             display: flex; align-items: center; justify-content: center;
-            border-radius: 16px 16px 0 0; overflow: hidden;
+            transition: transform .12s var(--ease-quart);
         }
-        .modal-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .modal-media .ph { color: var(--muted); font-size: 14px; padding: 24px; text-align: center; line-height: 1.5; }
-        .modal-body { padding: 20px 24px 24px; }
-        .modal-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; margin: 0 0 2px; color: var(--ink); }
-        .modal-latin { font-style: italic; color: var(--muted); margin: 0 0 14px; font-size: 15px; }
-        .modal-text { font-size: 14px; line-height: 1.6; color: var(--ink); margin: 14px 0 16px; }
-        .modal-link {
-            display: inline-block; font-size: 13.5px; font-weight: 500;
-            color: var(--accent); text-decoration: none; font-family: inherit;
-            background: transparent; cursor: pointer;
-            border: 1px solid var(--accent); padding: 8px 14px; border-radius: 8px;
-            transition: all 0.15s;
+        .thumb img {
+            position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+            opacity: 0; transform: scale(1.12);
+            transition: opacity .5s var(--ease-out), transform .9s var(--ease-out);
         }
-        .modal-link:hover { background: var(--accent); color: #fff; }
-        .spinner {
-            width: 30px; height: 30px;
-            border: 3px solid var(--line); border-top-color: var(--accent);
-            border-radius: 50%; animation: spin 0.8s linear infinite;
+        .thumb img.ok { opacity: 1; transform: none; }
+        .card.none .thumb { filter: grayscale(.7); opacity: .75; }
+        .card-name { margin: 0; font-family: var(--serif); font-weight: 700; font-size: 20px; line-height: 1.2; }
+        .name-btn {
+            display: inline-block; padding: 10px 0; margin: -10px 0; /* area tap 44px senza spostare il layout */
+            min-width: 44px; border: 0; background: none; font: inherit; color: var(--ink); text-align: left;
         }
+        .name-btn:hover { color: var(--muschio); text-decoration: underline; text-underline-offset: 3px; }
+        .name-btn.req { color: var(--corteccia); }
+        .latin { margin: 3px 0 0; font-family: var(--serif); font-style: italic; font-size: 15.5px; color: var(--muted); }
+        .traits { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 14px; color: var(--muted); }
+        .traits li { display: inline-flex; align-items: center; gap: 5px; }
+        .traits svg { flex-shrink: 0; color: var(--muschio); }
+        .formats { grid-column: 1 / -1; margin-top: 12px; }
+        .fmt { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 58px; padding: 6px 0; border-top: 1px solid var(--line); }
+        .fmt-l { display: flex; align-items: baseline; gap: 10px; }
+        .fmt-l b { min-width: 38px; font-weight: 600; }
+        .fmt-l span { color: var(--muted); font-size: 15px; font-variant-numeric: tabular-nums; }
+        .fmt.na { min-height: 42px; }
+        .fmt.na .fmt-l { opacity: .55; }
+        .na-t { font-size: 14px; color: var(--muted); }
+        .stepper {
+            display: inline-flex; align-items: center; flex-shrink: 0;
+            border: 1px solid var(--line); border-radius: 12px; background: var(--carta);
+            transition: background .25s var(--ease-quart), border-color .25s var(--ease-quart);
+        }
+        .stepper.on { background: var(--germoglio-2); border-color: var(--muschio); }
+        .step {
+            width: 44px; height: 44px; border: 0; border-radius: 11px; background: transparent;
+            font-size: 22px; line-height: 1; color: var(--bosco);
+            transition: background .15s var(--ease-quart), transform .12s var(--ease-quart);
+        }
+        .step:hover { background: rgba(31,61,51,.07); }
+        .step:disabled { color: #B3BCB6; background: transparent; cursor: default; }
+        .qty {
+            width: 44px; height: 44px; padding: 0; border: 0; background: transparent;
+            text-align: center; font: inherit; font-size: 17px; font-weight: 600; color: var(--ink);
+            font-variant-numeric: tabular-nums; -moz-appearance: textfield;
+        }
+        .qty::-webkit-inner-spin-button, .qty::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        .stepper.on .qty { color: var(--bosco); }
+        .empty { text-align: center; color: var(--muted); padding: 36px 16px; margin: 0; }
+        .empty svg { display: block; margin: 0 auto 10px; color: var(--muschio); transform-origin: 50% 100%; animation: sway 4.5s ease-in-out infinite; }
+        .foot { margin: 36px 2px 0; max-width: 72ch; font-size: 14px; line-height: 1.6; color: var(--muted); }
+        .foot p { margin: 0 0 8px; }
+
+        /* ---- Barra totale ---- */
+        .bar {
+            position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+            background: var(--card); border-top: 1px solid var(--line);
+            box-shadow: 0 -8px 24px rgba(24,35,30,.08);
+            padding: 10px max(16px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+        }
+        .bar-in { max-width: 1120px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .bar-sum { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+        .bar-count { font-size: 14px; color: var(--muted); }
+        .bar-total { display: inline-block; transform-origin: 0 60%; font-family: var(--serif); font-size: 23px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .bar-total small { font-family: var(--sans); font-size: 13px; font-weight: 400; color: var(--muted); margin-left: 5px; }
+        .bar .btn { position: relative; white-space: nowrap; padding: 0 18px; }
+        .bar .btn.pulse::after {
+            content: ''; position: absolute; inset: -5px; border-radius: 16px; border: 2px solid var(--muschio);
+            pointer-events: none; animation: ring 1s var(--ease-out) 2;
+        }
+        .lbl-s { display: none; }
+        @media (max-width: 419px) { .lbl-l { display: none; } .lbl-s { display: inline; } }
+
+        /* foglia che vola verso il totale quando aggiungi una piantina */
+        .fly { position: fixed; z-index: 90; width: 20px; height: 20px; pointer-events: none; color: var(--muschio); }
+
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            min-height: 48px; padding: 0 20px; border-radius: 12px; border: 1px solid transparent;
+            font-size: 16px; font-weight: 600; text-decoration: none; text-align: center;
+            transition: background .2s var(--ease-quart), border-color .2s var(--ease-quart), color .2s var(--ease-quart), transform .12s var(--ease-quart);
+        }
+        .btn.primary { background: var(--bosco); color: var(--chiaro); }
+        .btn.primary:hover { background: var(--bosco-2); }
+        .btn.secondary { background: transparent; border-color: var(--bosco); color: var(--bosco); }
+        .btn.secondary:hover { background: var(--germoglio-2); }
+        .btn.light { background: var(--germoglio); color: var(--bosco); }
+        .btn.light:hover { background: #DCEBB0; }
+        .btn:active, .chip:active, .step:active:not(:disabled), .thumb:active { transform: scale(.95); }
+        .btn .ok-ic { display: none; }
+        .btn.done .ok-ic { display: inline; animation: pop .3s var(--ease-out); }
+
+        /* ---- Pannelli (richiesta, scheda pianta) ---- */
+        .sheet {
+            position: fixed; inset: 0; z-index: 100;
+            display: flex; align-items: flex-end; justify-content: center;
+            padding: max(12px, env(safe-area-inset-top)) 0 0;
+            background: rgba(15,28,23,0); transition: background .2s var(--ease-in);
+        }
+        .sheet.open { background: rgba(15,28,23,.5); transition: background .3s var(--ease-out); }
+        .sheet-panel {
+            width: 100%; max-width: 640px; max-height: 100%; overflow: auto; overscroll-behavior: contain;
+            background: var(--card); border-radius: 20px 20px 0 0;
+            padding-bottom: env(safe-area-inset-bottom);
+            transform: translateY(40px); opacity: 0;
+            transition: transform .2s var(--ease-in), opacity .18s var(--ease-in); /* uscita: più rapida */
+        }
+        .sheet.open .sheet-panel { transform: none; opacity: 1; transition: transform .36s var(--ease-out), opacity .24s var(--ease-out); }
+        .sheet.instant, .sheet.instant .sheet-panel { transition: none !important; }
+        @media (min-width: 760px) {
+            .sheet { align-items: center; padding: 24px; }
+            .sheet-panel { border-radius: 20px; max-height: calc(100dvh - 48px); transform: translateY(16px) scale(.98); }
+        }
+        .sheet-head {
+            position: sticky; top: 0; z-index: 2;
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+            padding: 12px max(12px, env(safe-area-inset-right)) 10px max(22px, env(safe-area-inset-left));
+            background: var(--card); border-bottom: 1px solid var(--line);
+        }
+        .sheet-head h2 { margin: 0; font-family: var(--serif); font-size: 23px; font-weight: 700; line-height: 1.2; }
+        .sheet-close {
+            flex-shrink: 0; width: 44px; height: 44px; border: 0; border-radius: 50%;
+            background: var(--carta); font-size: 26px; line-height: 1; color: var(--ink);
+            transition: background .15s var(--ease-quart), transform .12s var(--ease-quart);
+        }
+        .sheet-close:hover { background: var(--line); }
+        .sheet-close:active { transform: scale(.92); }
+        .sheet-body { padding: 18px max(22px, env(safe-area-inset-right)) 26px max(22px, env(safe-area-inset-left)); }
+        .sec { margin: 28px 0 10px; font-family: var(--serif); font-size: 20px; font-weight: 700; line-height: 1.25; }
+        .small { font-size: 14px; color: var(--muted); }
+
+        /* richiesta */
+        .olist { list-style: none; margin: 0; padding: 0; }
+        .olist li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+        .olist .o-n { font-weight: 600; }
+        .olist .o-l { font-family: var(--serif); font-style: italic; color: var(--muted); font-size: 15px; }
+        .olist .o-q { text-align: right; font-variant-numeric: tabular-nums; }
+        .olist .o-d { color: var(--muted); font-size: 14px; }
+        .totals { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; margin: 14px 0 0; font-variant-numeric: tabular-nums; }
+        .totals dt { color: var(--muted); }
+        .totals dd { margin: 0; text-align: right; }
+        .totals .grand { font-family: var(--serif); font-size: 22px; font-weight: 700; color: var(--ink); }
+        .o-empty { margin: 0; color: var(--muted); }
+        .form { display: grid; gap: 14px; }
+        @media (min-width: 520px) { .form { grid-template-columns: 1fr 1fr; } .form .full { grid-column: 1 / -1; } }
+        .field label { display: block; margin-bottom: 6px; font-size: 15px; font-weight: 600; }
+        .field label span { font-weight: 400; color: var(--muted); }
+        .field input, .field select, .field textarea {
+            width: 100%; min-height: 48px; padding: 10px 14px;
+            font: inherit; font-size: 16px; color: var(--ink);
+            background: var(--carta); border: 1px solid var(--line); border-radius: 12px;
+            transition: border-color .2s var(--ease-quart), box-shadow .2s var(--ease-quart);
+        }
+        .field textarea { min-height: 92px; resize: vertical; }
+        .field input:focus, .field select:focus, .field textarea:focus {
+            outline: none; border-color: var(--muschio); box-shadow: 0 0 0 3px var(--germoglio);
+        }
+        .field [aria-invalid="true"] { border-color: var(--err); }
+        .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+        .actions .btn.primary { flex: 1 1 100%; }
+        .actions .btn.secondary { flex: 1 1 0; }
+        .msg { min-height: 22px; margin: 12px 0 0; color: var(--bosco); font-size: 15px; }
+        .msg.err { color: var(--err); }
+        .link-btn {
+            min-height: 44px; padding: 0; border: 0; background: none;
+            color: var(--muted); font-size: 15px; text-decoration: underline; text-underline-offset: 3px;
+        }
+
+        /* scheda pianta */
+        .p-media {
+            position: relative;
+            margin: -18px calc(-1 * max(22px, env(safe-area-inset-right))) 16px calc(-1 * max(22px, env(safe-area-inset-left)));
+            aspect-ratio: 4 / 3; background: var(--germoglio-2); color: var(--muschio);
+            display: flex; align-items: center; justify-content: center; overflow: hidden;
+        }
+        .p-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+        .p-media img.hi { opacity: 0; transition: opacity .5s var(--ease-out); }
+        .p-media img.hi.ok { opacity: 1; }
+        .p-media .ph { padding: 24px; text-align: center; color: var(--muted); font-size: 15px; }
+        .p-text { margin: 16px 0 18px; line-height: 1.6; }
+        .p-credit { margin: 16px 0 0; font-size: 13px; line-height: 1.5; color: var(--muted); }
+        .spinner { width: 30px; height: 30px; border: 3px solid var(--line); border-top-color: var(--muschio); border-radius: 50%; animation: spin .8s linear infinite; }
+
+        /* foto che si espande dalla scheda al pannello (View Transitions) */
+        ::view-transition-group(pmedia), ::view-transition-group(pname) { animation-duration: .45s; animation-timing-function: cubic-bezier(.22, 1, .36, 1); }
+        ::view-transition-old(pmedia), ::view-transition-new(pmedia) { height: 100%; object-fit: cover; }
+        ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .3s; }
+
+        /* ---- Copertina demo ---- */
+        .cover {
+            position: fixed; inset: 0; z-index: 120; overflow: auto;
+            display: flex; flex-direction: column;
+            background: var(--bosco); color: var(--chiaro);
+        }
+        .cover.out { transform: translateY(-100%); transition: transform .55s var(--ease-in); }
+        .cover:focus { outline: none; }
+        .cover-in {
+            width: 100%; max-width: 680px; margin: auto auto 0;
+            padding: calc(32px + env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) 28px max(24px, env(safe-area-inset-left));
+        }
+        .cover-for { margin: 0 0 16px; font-size: 16px; color: rgba(245,248,240,.78); }
+        .cover h1 { margin: 0 0 20px; font-family: var(--serif); font-weight: 400; font-size: clamp(34px, 9vw, 58px); line-height: 1.08; letter-spacing: -0.01em; }
+        .cover h1 .w { display: inline-block; }
+        .cover .lead { margin: 0 0 28px; max-width: 46ch; font-size: 18px; line-height: 1.55; color: rgba(245,248,240,.86); }
+        .cover-actions .btn { width: 100%; max-width: 360px; }
+        .cover-by { margin: 18px 0 0; font-size: 14px; color: rgba(245,248,240,.62); }
+        .bench { display: block; flex-shrink: 0; width: 100%; height: 170px; touch-action: pan-y; }
+        .bench g { transform-box: fill-box; transform-origin: 50% 100%; }
+        .sprout { animation: grow 1s var(--ease-out) both; animation-delay: calc(500ms + var(--i) * 45ms); }
+        .lean { transform: rotate(var(--lean, 0deg)); transition: transform .7s var(--ease-quart); }
+        .sway { animation: sway var(--sd, 5s) ease-in-out infinite; animation-delay: var(--sp, 0s); }
+        /* entrata della copertina: parole che si mettono a fuoco, poi testo e pulsante */
+        .cover .rise { animation: rise .8s var(--ease-out) both; animation-delay: var(--d, 0ms); }
+        .cover h1 .w { animation: focusIn .9s var(--ease-out) both; animation-delay: var(--d, 0ms); }
+
+        @keyframes grow { from { transform: scaleY(.04); opacity: 0; } to { transform: none; opacity: 1; } }
+        @keyframes sway { 0%, 100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
+        @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+        @keyframes focusIn { from { opacity: 0; transform: translateY(.35em); filter: blur(8px); } to { opacity: 1; transform: none; filter: blur(0); } }
+        @keyframes pop { from { transform: scale(.4); opacity: 0; } to { transform: none; opacity: 1; } }
+        @keyframes ring { from { transform: scale(.94); opacity: 1; } to { transform: scale(1.12); opacity: 0; } }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Summary dashboard */
-        .summary-dashboard {
-            position: fixed;
-            bottom: 0; left: 0; right: 0;
-            background: var(--card);
-            box-shadow: 0 -4px 20px rgba(32,32,30,0.08);
-            border-top: 1px solid var(--line);
-            padding: 14px 28px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 16px;
-            flex-wrap: wrap;
-            max-width: 1040px;
-            margin: 0 auto;
-            border-radius: 16px 16px 0 0;
-            z-index: 1000;
-        }
-        .summary-item { text-align: center; }
-        .summary-label {
-            font-size: 11px; color: var(--muted);
-            text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px;
-        }
-        .summary-value {
-            font-family: 'Source Serif 4', Georgia, serif;
-            font-size: 20px; font-weight: 600; color: var(--ink);
-        }
-        .summary-value.total { color: var(--accent); font-size: 24px; }
-        .summary-actions { display: flex; gap: 8px; }
-        .btn-save {
-            font-family: inherit; font-size: 14px; font-weight: 500;
-            background-color: var(--accent); color: #fff; border: none;
-            padding: 11px 20px; border-radius: 10px; cursor: pointer;
-            transition: background-color 0.15s;
-        }
-        .btn-save:hover { background-color: var(--accent-hover); }
-        .btn-reset {
-            font-family: inherit; font-size: 14px; font-weight: 500;
-            background: transparent; color: var(--accent); border: 1px solid var(--accent);
-            padding: 11px 18px; border-radius: 10px; cursor: pointer;
-            transition: all 0.15s;
-        }
-        .btn-reset:hover { background: var(--accent-tint); }
-
-        /* Riepilogo ordine */
-        .order-list { margin: 8px 0; max-height: 42vh; overflow: auto; }
-        .oitem {
-            display: flex; justify-content: space-between; gap: 10px;
-            font-size: 14px; color: var(--ink);
-            padding: 8px 0; border-bottom: 1px solid var(--line);
-        }
-        .oitem em { font-style: normal; font-size: 12.5px; color: var(--muted); }
-        .order-empty { color: var(--muted); font-size: 14px; margin: 6px 0; }
-        .order-total { font-size: 15px; color: var(--ink); margin: 10px 0 16px; }
-        .order-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-        .order-msg { font-size: 13px; color: var(--accent); margin-top: 12px; min-height: 18px; word-break: break-word; }
-
-        /* ---- Mobile: ogni pianta diventa una card ---- */
-        @media (max-width: 720px) {
-            body { padding: 16px 10px 158px; }
-            .container { padding: 18px 14px; border-radius: 14px; }
-            h1 { font-size: 23px; }
-            p.subtitle { font-size: 14px; }
-            .topbar { margin: -18px -14px 0; padding: 16px 14px 12px; }
-            .topbar .subtitle { display: none; } /* spazio prezioso su mobile */
-
-            .table-wrap { overflow-x: visible; }
-            #plantsTable { min-width: 0; }
-            thead { display: none; }
-            #plantsBody, #plantsBody tr, #plantsTable td { display: block; }
-            #plantsBody tr {
-                display: flex; flex-wrap: wrap; gap: 12px 6px;
-                border: 1px solid var(--line); border-radius: 14px;
-                background: var(--card); padding: 14px; margin-bottom: 12px;
-            }
-            #plantsBody tr:hover { background: var(--card); }
-            #plantsTable td { border-bottom: none; padding: 0; width: auto; text-align: left; }
-            #plantsTable td:first-child { flex: 0 0 100%; }
-            #plantsTable td.qcell {
-                flex: 1 1 0; min-width: 0; text-align: center;
-                display: flex; flex-direction: column; align-items: center; gap: 6px;
-            }
-            #plantsTable td.qcell.na { opacity: 0.45; }
-            .size-tag { display: flex; flex-direction: column; line-height: 1.25; }
-            .size-tag b { font-size: 12px; font-weight: 600; color: var(--ink); }
-            .size-tag i { font-size: 10.5px; font-style: normal; color: var(--muted); }
-            .plant-name { font-size: 17px; }
-            .stepper .step { width: 26px; height: 30px; font-size: 16px; }
-            .qty { width: 30px; height: 30px; }
-
-            .summary-dashboard { padding: 10px 14px; gap: 6px 10px; border-radius: 14px 14px 0 0; }
-            .summary-label { font-size: 10px; margin-bottom: 1px; }
-            .summary-value { font-size: 16px; }
-            .summary-value.total { font-size: 18px; }
-            .btn-reset { padding: 9px 14px; font-size: 13px; }
-
-            .modal-card { max-width: 100%; }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation: none !important; transition: none !important; }
+            ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="topbar">
-    <h1>Listino Prezzi Piante Interattivo</h1>
-    <p class="subtitle">Seleziona le varianti desiderate per calcolare il totale in tempo reale (IVA 10% inclusa). Ordina per più criteri insieme: clicca i filtri nell'ordine di priorità.</p>
+<a class="skip" href="#lista">Vai al listino</a>
 
-    <input type="text" id="searchInput" class="search-input" placeholder="Cerca una specie o varietà..." onkeyup="filterTable()">
-
-    <div class="sort-bar">
-        <span class="sort-label">Ordina:</span>
-        <button class="chip" data-key="name" onclick="toggleSort('name')"><span class="badge"></span>A–Z</button>
-        <button class="chip" data-key="h" onclick="toggleSort('h')"><span class="badge"></span>Più grandi</button>
-        <button class="chip" data-key="g" onclick="toggleSort('g')"><span class="badge"></span>Più veloci</button>
-        <button class="chip" data-key="o" onclick="toggleSort('o')"><span class="badge"></span>Più ombra</button>
-        <button class="chip" data-key="f" onclick="toggleSort('f')"><span class="badge"></span>Più frutta</button>
-        <button class="chip chip-clear" onclick="clearSort()">Azzera ordine</button>
+<header class="top">
+    <div class="top-in">
+        <h1 class="brand">
+            <button type="button" class="brand-btn" id="brandBtn" tabindex="-1">
+                <span class="brand-name" id="brandName">Listino piantine</span>
+                <span class="brand-place" id="brandPlace"></span>
+            </button>
+        </h1>
+        <label class="search">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+            <input type="search" id="q" placeholder="Cerca per nome o nome latino" autocomplete="off" aria-label="Cerca una specie">
+        </label>
+        <div class="chips" id="chips" role="toolbar" aria-label="Filtri e ordinamento">
+            <button type="button" class="chip" data-tipo="alberi" aria-pressed="false">Alberi</button>
+            <button type="button" class="chip" data-tipo="arbusti" aria-pressed="false">Arbusti</button>
+            <button type="button" class="chip" data-disp="1" aria-pressed="false">Disponibili</button>
+            <span class="chips-sep" aria-hidden="true"></span>
+            <span class="chips-label">Ordina per</span>
+            <button type="button" class="chip" data-key="name" aria-pressed="false">A–Z<span class="badge"></span></button>
+            <button type="button" class="chip" data-key="h" aria-pressed="false">Più alte<span class="badge"></span></button>
+            <button type="button" class="chip" data-key="g" aria-pressed="false">Più rapide<span class="badge"></span></button>
+            <button type="button" class="chip" data-key="o" aria-pressed="false">Più ombra<span class="badge"></span></button>
+            <button type="button" class="chip" data-key="f" aria-pressed="false">Più frutti<span class="badge"></span></button>
+        </div>
     </div>
-    </div><!-- /topbar -->
+</header>
 
-    <div class="table-wrap">
-        <table id="plantsTable">
-            <thead>
-                <tr>
-                    <th>Specie / Varietà</th>
-                    <th>In contenitore fino a 1 l<br><small>€ 2,00 (escl. IVA)</small></th>
-                    <th>In contenitore fino a 3 l<br><small>€ 3,60 (escl. IVA)</small></th>
-                    <th>Trapianti 2-3 anni / fino a 20 l<br><small>€ 22,00 (escl. IVA)</small></th>
-                </tr>
-            </thead>
-            <tbody id="plantsBody"></tbody>
-        </table>
+<main id="lista" tabindex="-1">
+    <div class="list-head">
+        <p id="resultCount"></p>
+        <p id="priceNote"></p>
+    </div>
+    <div class="grid" id="grid"></div>
+    <div class="empty" id="empty" hidden>
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21v-9"/><path d="M12 12c0-4 3-7 7-7 0 4-3 7-7 7zM12 14c0-3-2.5-5.5-6-5.5 0 3 2.5 5.5 6 5.5z"/></svg>
+        <p>Nessuna specie trovata. Prova con un altro nome o togli i filtri.</p>
+    </div>
+    <footer class="foot" id="foot"></footer>
+</main>
+
+<div class="bar" id="bar">
+    <div class="bar-in">
+        <div class="bar-sum" aria-live="polite">
+            <span class="bar-count" id="barCount">Nessuna piantina scelta</span>
+            <span class="bar-total" id="barTotalWrap"><span id="barTotal">€ 0,00</span><small>IVA inclusa</small></span>
+        </div>
+        <button type="button" class="btn primary" id="barBtn"><span class="lbl-l">Prepara la richiesta</span><span class="lbl-s">Richiesta</span></button>
     </div>
 </div>
 
-<div class="summary-dashboard">
-    <div class="summary-item">
-        <div class="summary-label">Piante</div>
-        <div class="summary-value" id="count">0</div>
-    </div>
-    <div class="summary-item">
-        <div class="summary-label">Totale Imponibile</div>
-        <div class="summary-value" id="subtotal">€ 0,00</div>
-    </div>
-    <div class="summary-item">
-        <div class="summary-label">IVA (10%)</div>
-        <div class="summary-value" id="iva">€ 0,00</div>
-    </div>
-    <div class="summary-item">
-        <div class="summary-label">Totale con IVA</div>
-        <div class="summary-value total" id="total">€ 0,00</div>
-    </div>
-    <div class="summary-actions">
-        <button class="btn-save" onclick="openOrder()">Salva ordine</button>
-        <button class="btn-reset" onclick="resetSelection()">Azzera</button>
-    </div>
-</div>
+<!-- Richiesta -->
+<div class="sheet" id="sheet-order" hidden>
+    <div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="orderTitle">
+        <div class="sheet-head">
+            <h2 id="orderTitle">La tua richiesta</h2>
+            <button type="button" class="sheet-close" aria-label="Chiudi">×</button>
+        </div>
+        <div class="sheet-body">
+            <ul class="olist" id="oList"></ul>
+            <dl class="totals" id="oTotals"></dl>
 
-<!-- Modale "La tua selezione" -->
-<div id="orderModal" class="modal-overlay" onclick="onOverlayClick(event)">
-    <div class="modal-card" role="dialog" aria-modal="true">
-        <button class="modal-close" onclick="closeModal()" aria-label="Chiudi">×</button>
-        <div class="modal-body">
-            <h2 class="modal-title">La tua selezione</h2>
-            <p class="modal-latin" id="oCount"></p>
-            <div class="order-list" id="oList"></div>
-            <div class="order-total" id="oTotal"></div>
-            <div class="order-actions">
-                <button class="modal-link" onclick="copyOrderText()">Copia riepilogo</button>
-                <button class="modal-link" onclick="copyOrderLink()">Copia link</button>
+            <h3 class="sec">I tuoi dati</h3>
+            <form class="form" id="reqForm" novalidate>
+                <div class="field full"><label for="fNome">Nome e cognome, o ente</label><input id="fNome" name="nome" autocomplete="name" required></div>
+                <div class="field"><label for="fTel">Telefono</label><input id="fTel" name="tel" type="tel" autocomplete="tel" inputmode="tel"></div>
+                <div class="field"><label for="fEmail">Email</label><input id="fEmail" name="email" type="email" autocomplete="email" inputmode="email"></div>
+                <div class="field"><label for="fCf">Codice fiscale o P. IVA <span>(per la fattura)</span></label><input id="fCf" name="cf" autocapitalize="characters" autocomplete="off"></div>
+                <div class="field"><label for="fComune">Comune di impianto</label><input id="fComune" name="comune" autocomplete="address-level2"></div>
+                <div class="field full" id="vivaioField"><label for="fVivaio">Vivaio di ritiro</label><select id="fVivaio" name="vivaio"></select></div>
+                <div class="field full"><label for="fNote">Note <span>(facoltative)</span></label><textarea id="fNote" name="note" placeholder="Per esempio: periodo di ritiro preferito"></textarea></div>
+            </form>
+            <p class="small">Servono il nome e almeno un recapito tra telefono ed email. I dati restano sul tuo telefono finché non invii la richiesta.</p>
+
+            <div class="actions">
+                <button type="button" class="btn primary" id="sendMail" hidden>Invia la richiesta per email</button>
+                <button type="button" class="btn primary" id="sendWa" hidden>Invia la richiesta su WhatsApp</button>
+                <button type="button" class="btn secondary" id="copyText"><span class="ok-ic" aria-hidden="true">✓</span><span class="lbl">Copia il testo</span></button>
+                <button type="button" class="btn secondary" id="copyLink"><span class="ok-ic" aria-hidden="true">✓</span><span class="lbl">Copia il link</span></button>
             </div>
-            <p class="order-msg" id="oMsg"></p>
+            <p class="msg" id="oMsg" role="status"></p>
+            <button type="button" class="link-btn" id="resetBtn">Svuota la selezione</button>
         </div>
     </div>
 </div>
 
-<!-- Modale foto / scheda specie -->
-<div id="modal" class="modal-overlay" onclick="onOverlayClick(event)">
-    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="mName">
-        <button class="modal-close" onclick="closeModal()" aria-label="Chiudi">×</button>
-        <div class="modal-media" id="mMedia"></div>
-        <div class="modal-body">
-            <h2 class="modal-title" id="mName"></h2>
-            <p class="modal-latin" id="mLatin"></p>
-            <div class="meta" id="mMeta"></div>
-            <p class="modal-text" id="mText"></p>
-            <a class="modal-link" id="mLink" href="#" target="_blank" rel="noopener">Apri su Wikipedia</a>
+<!-- Scheda specie -->
+<div class="sheet" id="sheet-plant" hidden>
+    <div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="pName">
+        <div class="sheet-head">
+            <h2 id="pName"></h2>
+            <button type="button" class="sheet-close" aria-label="Chiudi">×</button>
+        </div>
+        <div class="sheet-body">
+            <div class="p-media" id="pMedia"></div>
+            <p class="latin" id="pLatin"></p>
+            <ul class="traits" id="pTraits"></ul>
+            <p class="p-text" id="pText"></p>
+            <a class="btn secondary" id="pLink" href="#" target="_blank" rel="noopener">Apri su Wikipedia</a>
+            <p class="p-credit" id="pCredit"></p>
         </div>
     </div>
+</div>
+
+<!-- Copertina (solo demo, una volta per sessione) -->
+<div class="cover" id="cover" role="dialog" aria-modal="true" aria-labelledby="coverTitle" tabindex="-1" hidden>
+    <div class="cover-in">
+        <p class="cover-for rise" id="coverFor" style="--d:80ms"></p>
+        <h1 id="coverTitle">Richiedere piantine forestali dal telefono, in un minuto.</h1>
+        <p class="lead rise" id="coverLead" style="--d:750ms"></p>
+        <div class="cover-actions rise" style="--d:850ms">
+            <button type="button" class="btn light" id="coverGo">Prova il listino</button>
+        </div>
+        <p class="cover-by rise" id="coverBy" style="--d:950ms"></p>
+    </div>
+    <div id="bench"></div>
 </div>
 
 <script>
-    /* ---- Dati botanici reali ----
-       c1/c3/c20 = disponibilità contenitore (1l €2,00 / 3l €3,60 / 20l €22,00)
+    /* ================================================================
+       CONFIGURAZIONE — per un altro vivaio basta modificare questo
+       blocco, l'elenco PLANTS e i nomi latini (LATIN) qui sotto.
+       ================================================================ */
+    const CONFIG = {
+        nome: 'Vivai forestali AMAP',
+        luogo: 'Amandola e Senigallia',
+        iva: 0.10,
+        // Formati di vendita: la chiave k (lettera c + numero) è la colonna in PLANTS
+        formati: [
+            { k: 'c1',  etichetta: '1 l',  descrizione: 'In contenitore fino a 1 l',        prezzo: 2.00 },
+            { k: 'c3',  etichetta: '3 l',  descrizione: 'In contenitore fino a 3 l',        prezzo: 3.60 },
+            { k: 'c20', etichetta: '20 l', descrizione: 'Trapianti 2-3 anni, fino a 20 l', prezzo: 22.00 }
+        ],
+        // Generi evidenziati in colore (vuoto = nessuno)
+        evidenzia: [],
+        // Dove arrivano le richieste. Vuoto = pulsante nascosto.
+        email: 'vivai@amap.marche.it',
+        whatsapp: '',   // numero con prefisso internazionale, es. '393331234567'
+        // Vivai tra cui scegliere il ritiro (vuoto = campo nascosto)
+        vivai: ['Amandola', 'Senigallia'],
+        // Altezza minima (m) per contare una specie tra gli alberi
+        altezzaAlbero: 7,
+        // Chiave di salvataggio nel browser: cambiala se più listini stanno sullo stesso dominio
+        id: 'listino-piante-ordine',
+        // Demo: copertina iniziale, nota "demo non ufficiale", [DEMO] nell'oggetto delle email.
+        // Con attiva: false resta il listino definitivo.
+        demo: { attiva: true, autore: 'Giulio Colombo' }
+    };
+
+    /* ---- Dati botanici ----
+       c1/c3/c20 = disponibilità per formato (vedi CONFIG.formati)
        h  = altezza a maturità in metri (indicativa)
        g  = velocità di crescita  1=lenta 2=media 3=rapida
        o  = tolleranza all'ombra  1=pieno sole 2=mezz'ombra 3=ombra
-       f  = fruttificazione       0=assente 1=bacche/ornamentale 2=frutto edule  */
+       f  = frutti                0=poco vistosi 1=per la fauna/ornamentali 2=eduli  */
     const PLANTS = [
         {n:"Abelia cephalonica", c1:0,c3:0,c20:1, h:2,   g:2,o:2,f:0},
         {n:"Abete greco", c1:1,c3:0,c20:0, h:30,  g:1,o:3,f:0},
@@ -527,7 +555,7 @@
         {n:"Gelso nero", c1:0,c3:1,c20:1, h:12,  g:2,o:1,f:2},
         {n:"Ginepro comune", c1:1,c3:0,c20:1, h:6,   g:1,o:1,f:2},
         {n:"Ginestra", c1:0,c3:1,c20:0, h:3,   g:3,o:1,f:0},
-        {n:"Ginko biloba", c1:0,c3:0,c20:0, h:35,  g:2,o:2,f:1},
+        {n:"Ginkgo biloba", c1:0,c3:0,c20:0, h:35,  g:2,o:2,f:1},
         {n:"Ippocastano", c1:0,c3:0,c20:0, h:30,  g:2,o:2,f:1},
         {n:"Katsura", c1:0,c3:0,c20:0, h:20,  g:2,o:2,f:0},
         {n:"Lauroceraso", c1:1,c3:0,c20:1, h:6,   g:3,o:3,f:1},
@@ -573,15 +601,7 @@
         {n:"Viburno tino", c1:1,c3:0,c20:1, h:3,   g:2,o:3,f:1}
     ];
 
-    const PRICES = { c1: 2.0, c3: 3.6, c20: 22.0 };
-    const SIZE = { c1: { l: '1 l', p: '€ 2,00' }, c3: { l: '3 l', p: '€ 3,60' }, c20: { l: '20 l', p: '€ 22,00' } };
-    const G_LABEL = ["", "crescita lenta", "crescita media", "crescita rapida"];
-    const O_LABEL = ["", "pieno sole", "mezz'ombra", "ombra"];
-    const F_LABEL = ["senza frutto", "bacche", "frutto edule"];
-    // Generi richiesti dal cliente: evidenziati in accent
-    const REQ = ["Acero","Ippocastano","Ontano","Betulla","Carpino","Katsura","Nocciolo","Faggio","Frassino","Pioppo","Salice","Olmo"];
-
-    // Nome scientifico per ogni specie (per recuperare foto/scheda da Wikipedia)
+    // Nome scientifico per ogni specie (per foto e scheda da Wikipedia)
     const LATIN = {
         "Abelia cephalonica":"Abelia", "Abete greco":"Abies cephalonica",
         "Acero campestre":"Acer campestre", "Acero minore":"Acer monspessulanum",
@@ -604,7 +624,7 @@
         "Faggio":"Fagus sylvatica", "Frassino maggiore":"Fraxinus excelsior",
         "Gelso bianco":"Morus alba", "Gelso nero":"Morus nigra",
         "Ginepro comune":"Juniperus communis", "Ginestra":"Spartium junceum",
-        "Ginko biloba":"Ginkgo biloba", "Ippocastano":"Aesculus hippocastanum",
+        "Ginkgo biloba":"Ginkgo biloba", "Ippocastano":"Aesculus hippocastanum",
         "Katsura":"Cercidiphyllum japonicum", "Lauroceraso":"Prunus laurocerasus",
         "Lavanda angustifolia":"Lavandula angustifolia", "Leccio":"Quercus ilex",
         "Ligustro cinese":"Ligustrum lucidum", "Ligustro giapponese":"Ligustrum japonicum",
@@ -627,216 +647,312 @@
         "Terebinto":"Pistacia terebinthus", "Tiglio selvatico":"Tilia cordata",
         "Viburno opalo":"Viburnum opulus", "Viburno tino":"Viburnum tinus"
     };
+    // Nome scientifico mostrato, quando è più preciso di quello usato per Wikipedia
+    const LATIN_SHOW = {
+        "Melograno nano": "Punica granatum 'Nana'",
+        "Rosmarino prostrato": "Rosmarinus officinalis 'Prostratus'",
+        "Pioppo cipressino": "Populus nigra 'Italica'",
+        "Platano": "Platanus × hispanica"
+    };
 
-    function cell(avail, key, i) {
-        const tag = '<span class="size-tag"><b>' + SIZE[key].l + '</b><i>' + SIZE[key].p + '</i></span>';
-        if (!avail) return '<td class="qcell na">' + tag + '<span class="empty-cell">–</span></td>';
-        return '<td class="qcell">' + tag + '<div class="stepper">' +
-            '<button type="button" class="step" onclick="changeQty(this,-1)">−</button>' +
-            '<input type="number" class="qty" data-price="' + PRICES[key] + '" data-i="' + i + '" data-k="' + key + '" min="0" value="0" inputmode="numeric" oninput="onQtyInput(this)">' +
-            '<button type="button" class="step" onclick="changeQty(this,1)">+</button>' +
-        '</div></td>';
+    const PRICES = {}, SIZE = {};
+    CONFIG.formati.forEach(f => { PRICES[f.k] = f.prezzo; SIZE[f.k] = f.etichetta; });
+    const IVA_PCT = (CONFIG.iva * 100).toLocaleString('it-IT') + '%';
+    const DEMO = CONFIG.demo && CONFIG.demo.attiva ? CONFIG.demo : null;
+    const REDUCE = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const EASE_OUT = 'cubic-bezier(.16, 1, .3, 1)';
+    const G_LABEL = ['', 'crescita lenta', 'crescita media', 'crescita rapida'];
+    const O_LABEL = ['', 'pieno sole', "mezz'ombra", 'ombra'];
+    const F_LABEL = ['frutti poco vistosi', 'frutti per la fauna', 'frutti eduli'];
+
+    function esc(t) { return String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]); }
+    function euro(n) { return '€ ' + n.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    function norm(t) { return String(t).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); }
+    function latinShown(p) {
+        const l = LATIN_SHOW[p.n] || LATIN[p.n] || '';
+        return norm(p.n).indexOf(norm(l)) === 0 ? '' : l; // "Ginkgo biloba": il nome è già quello latino
+    }
+    function inView(el, margin) {
+        const r = el.getBoundingClientRect(), m = margin || 0;
+        return r.bottom > -m && r.top < innerHeight + m && r.width > 0;
     }
 
-    function meta(p) {
-        return '<div class="meta">' +
-            '<span class="pill" title="Altezza a maturità"><i class="dot dh"></i>' + p.h + ' m</span>' +
-            '<span class="pill" title="Velocità di crescita"><i class="dot dg"></i>' + G_LABEL[p.g] + '</span>' +
-            '<span class="pill" title="Tolleranza all\'ombra"><i class="dot do"></i>' + O_LABEL[p.o] + '</span>' +
-            '<span class="pill" title="Fruttificazione"><i class="dot df"></i>' + F_LABEL[p.f] + '</span>' +
-        '</div>';
+    /* ---- Icone ---- */
+    const svg = (d, s) => '<svg width="' + (s || 15) + '" height="' + (s || 15) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
+    const IC = {
+        h: svg('<path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4"/>'),
+        g: svg('<path d="M12 21v-9"/><path d="M12 12c0-4 3-7 7-7 0 4-3 7-7 7zM12 14c0-3-2.5-5.5-6-5.5 0 3 2.5 5.5 6 5.5z"/>'),
+        o: [
+            '',
+            svg('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'),
+            svg('<path d="M12 3v2M5.6 5.6l1.4 1.4M3 12h2"/><path d="M8.5 13a4 4 0 0 1 7-3.6"/><path d="M17 20H9a4 4 0 1 1 1-7.9A5 5 0 0 1 19.5 14 3 3 0 0 1 17 20z"/>'),
+            svg('<path d="M17.5 19H8a5 5 0 1 1 1.3-9.8A6 6 0 0 1 20.8 12 3.5 3.5 0 0 1 17.5 19z"/>')
+        ],
+        f: svg('<circle cx="9" cy="15" r="4"/><circle cx="16.5" cy="13.5" r="3.5"/><path d="M10 11c.5-4 2.5-6.5 6-8"/>'),
+        leaf: svg('<path d="M5 19c0-8 5-14 14-14 0 9-6 14-14 14z"/><path d="M5 19l8-8"/>', 30)
+    };
+    const LEAF_FILL = '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19c0-8 5-14 14-14 0 9-6 14-14 14z" fill="currentColor"/><path d="M5 19l8-8" stroke="#F5F8F0" stroke-width="1.6" stroke-linecap="round"/></svg>';
+    function traitsHTML(p) {
+        return '<li title="Altezza a maturità">' + IC.h + p.h.toLocaleString('it-IT') + ' m</li>' +
+            '<li title="Velocità di crescita">' + IC.g + G_LABEL[p.g] + '</li>' +
+            '<li title="Esposizione">' + IC.o[p.o] + O_LABEL[p.o] + '</li>' +
+            '<li title="Frutti">' + IC.f + F_LABEL[p.f] + '</li>';
     }
 
-    const tbody = document.getElementById('plantsBody');
+    /* ---- Intestazioni dal CONFIG ---- */
+    document.title = (DEMO ? 'Demo: ' : '') + 'Listino piantine, ' + CONFIG.nome;
+    document.getElementById('brandName').textContent = CONFIG.nome;
+    document.getElementById('brandPlace').textContent = CONFIG.luogo || '';
+    document.getElementById('priceNote').textContent = 'Prezzi IVA esclusa, il totale include l\'IVA ' + IVA_PCT;
+
+    /* ---- Schede delle specie ---- */
+    const grid = document.getElementById('grid');
+    function fmtRow(p, f, i) {
+        const label = '<span class="fmt-l" title="' + esc(f.descrizione || '') + '"><b>' + esc(f.etichetta) + '</b><span>' + euro(f.prezzo) + '</span></span>';
+        if (!p[f.k]) return '<div class="fmt na">' + label + '<span class="na-t">non disponibile</span></div>';
+        const what = esc(p.n) + ', ' + esc(f.etichetta);
+        return '<div class="fmt">' + label + '<div class="stepper">' +
+            '<button type="button" class="step" data-d="-1" aria-label="Togli una piantina: ' + what + '">−</button>' +
+            '<input type="number" class="qty" min="0" max="9999" value="0" inputmode="numeric" data-i="' + i + '" data-k="' + f.k + '" aria-label="Quantità: ' + what + '">' +
+            '<button type="button" class="step" data-d="1" aria-label="Aggiungi una piantina: ' + what + '">+</button>' +
+        '</div></div>';
+    }
     PLANTS.forEach((p, i) => {
-        const tr = document.createElement('tr');
-        tr.dataset.index = i;
-        tr.dataset.name = p.n;
-        tr.dataset.h = p.h;
-        tr.dataset.g = p.g;
-        tr.dataset.o = p.o;
-        tr.dataset.f = p.f;
-        const req = REQ.some(r => p.n.indexOf(r) > -1);
-        const icon = '<svg class="pn-ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>';
-        tr.innerHTML =
-            '<td><button type="button" class="plant-name ' + (req ? 'req' : '') + '" title="Mostra foto e scheda" onclick="openPlant(' + i + ')">' + p.n + icon + '</button>' + meta(p) + '</td>' +
-            cell(p.c1, 'c1', i) + cell(p.c3, 'c3', i) + cell(p.c20, 'c20', i);
-        tbody.appendChild(tr);
+        const latin = latinShown(p);
+        const avail = CONFIG.formati.some(f => p[f.k]);
+        const req = CONFIG.evidenzia.some(r => p.n.indexOf(r) > -1);
+        const el = document.createElement('article');
+        el.className = 'card' + (avail ? '' : ' none');
+        el.dataset.index = i;
+        el.dataset.name = p.n;
+        el.dataset.h = p.h; el.dataset.g = p.g; el.dataset.o = p.o; el.dataset.f = p.f;
+        el.dataset.search = norm(p.n + ' ' + (LATIN[p.n] || '') + ' ' + latin);
+        el.dataset.tipo = p.h >= CONFIG.altezzaAlbero ? 'alberi' : 'arbusti';
+        el.dataset.disp = avail ? '1' : '0';
+        el.innerHTML =
+            '<button type="button" class="thumb" data-open="' + i + '" aria-label="Foto e scheda: ' + esc(p.n) + '">' + IC.leaf + '</button>' +
+            '<div>' +
+                '<h2 class="card-name"><button type="button" class="name-btn' + (req ? ' req' : '') + '" data-open="' + i + '">' + esc(p.n) + '</button></h2>' +
+                (latin ? '<p class="latin">' + esc(latin) + '</p>' : '') +
+                '<ul class="traits">' + traitsHTML(p) + '</ul>' +
+            '</div>' +
+            '<div class="formats">' + CONFIG.formati.map(f => fmtRow(p, f, i)).join('') + '</div>';
+        grid.appendChild(el);
     });
+    const cards = Array.from(grid.children);
+    const qtys = Array.from(grid.querySelectorAll('.qty'));
+
+    // Le schede visibili riprendono posto con un movimento, invece di saltare (FLIP)
+    function flip(change) {
+        if (REDUCE || !Element.prototype.animate) { change(); return; }
+        const before = new Map();
+        cards.forEach(c => { if (!c.hidden && inView(c, 80)) before.set(c, c.getBoundingClientRect()); });
+        change();
+        const lim = innerHeight * 0.7;
+        cards.forEach(c => {
+            if (c.hidden || !inView(c, 80)) return;
+            const r = c.getBoundingClientRect(), b = before.get(c);
+            if (b) {
+                const dx = b.left - r.left, dy = Math.max(-lim, Math.min(lim, b.top - r.top));
+                if (dx || dy) c.animate([{ transform: 'translate(' + dx + 'px,' + dy + 'px)' }, { transform: 'none' }], { duration: 480, easing: EASE_OUT });
+            } else {
+                c.animate([{ opacity: 0, transform: 'translateY(14px) scale(.98)' }, { opacity: 1, transform: 'none' }], { duration: 380, easing: EASE_OUT });
+            }
+        });
+    }
+    // Entrata delle prime schede visibili, una dopo l'altra
+    function revealCards(delay) {
+        if (REDUCE || !Element.prototype.animate) return;
+        let n = 0;
+        cards.forEach(c => {
+            if (c.hidden || n >= 6 || !inView(c)) return;
+            c.animate([{ opacity: 0, transform: 'translateY(22px)' }, { opacity: 1, transform: 'none' }], { duration: 700, delay: delay + n * 80, easing: EASE_OUT, fill: 'backwards' });
+            n++;
+        });
+    }
+
+    /* ---- Ricerca e filtri ---- */
+    const state = { q: '', tipo: '', disp: false };
+    function applyFilter() {
+        const q = norm(state.q.trim());
+        let n = 0;
+        cards.forEach(c => {
+            const ok = (!q || c.dataset.search.indexOf(q) > -1) &&
+                (!state.tipo || c.dataset.tipo === state.tipo) &&
+                (!state.disp || c.dataset.disp === '1');
+            c.hidden = !ok;
+            if (ok) n++;
+        });
+        document.getElementById('resultCount').textContent = n === PLANTS.length ? n + ' specie' : n + ' specie su ' + PLANTS.length;
+        document.getElementById('empty').hidden = n > 0;
+    }
+    document.getElementById('q').addEventListener('input', e => { state.q = e.target.value; applyFilter(); });
 
     /* ---- Ordinamento multi-criterio ---- */
     let sortKeys = []; // ordine di priorità
-
-    function toggleSort(key) {
-        const i = sortKeys.indexOf(key);
-        if (i > -1) sortKeys.splice(i, 1); else sortKeys.push(key);
-        applySort();
-        renderChips();
-    }
-    function clearSort() { sortKeys = []; applySort(); renderChips(); }
-
     function compare(a, b, key) {
         if (key === 'name') return a.dataset.name.localeCompare(b.dataset.name, 'it');
-        // tutti gli altri in discendente: più grandi / più veloci / più ombra / più frutta prima
-        return (+b.dataset[key]) - (+a.dataset[key]);
+        return (+b.dataset[key]) - (+a.dataset[key]); // più alte / rapide / ombra / frutti prima
     }
     function applySort() {
-        const rows = Array.from(tbody.querySelectorAll('tr'));
-        rows.sort((a, b) => {
-            for (const k of sortKeys) {
-                const c = compare(a, b, k);
-                if (c !== 0) return c;
-            }
-            return a.dataset.index - b.dataset.index; // ordine originale come fallback stabile
-        });
-        rows.forEach(r => tbody.appendChild(r));
+        cards.slice().sort((a, b) => {
+            for (const k of sortKeys) { const c = compare(a, b, k); if (c !== 0) return c; }
+            return a.dataset.index - b.dataset.index;
+        }).forEach(c => grid.appendChild(c));
     }
     function renderChips() {
-        document.querySelectorAll('.chip[data-key]').forEach(chip => {
-            const pos = sortKeys.indexOf(chip.dataset.key);
-            const badge = chip.querySelector('.badge');
-            if (pos > -1) {
-                chip.classList.add('active');
-                badge.textContent = pos + 1;
-                badge.style.display = 'inline-flex';
-            } else {
-                chip.classList.remove('active');
-                badge.style.display = 'none';
-            }
+        document.querySelectorAll('#chips .chip').forEach(ch => {
+            let on = false;
+            if (ch.dataset.key) {
+                const pos = sortKeys.indexOf(ch.dataset.key);
+                on = pos > -1;
+                ch.querySelector('.badge').textContent = on && sortKeys.length > 1 ? pos + 1 : '';
+            } else if (ch.dataset.tipo) on = state.tipo === ch.dataset.tipo;
+            else if (ch.dataset.disp) on = state.disp;
+            ch.setAttribute('aria-pressed', on ? 'true' : 'false');
         });
     }
-
-    /* ---- Foto / scheda specie (Wikipedia) ---- */
-    const wikiCache = {};
-    let lastFocus = null;
-
-    async function wikiQuery(title, lang) {
-        const url = 'https://' + lang + '.wikipedia.org/w/api.php?action=query&format=json&origin=*' +
-            '&prop=pageimages|extracts&exintro=1&explaintext=1&redirects=1&pithumbsize=640&titles=' +
-            encodeURIComponent(title);
-        try {
-            const res = await fetch(url);
-            const data = await res.json();
-            const page = Object.values(data.query.pages)[0];
-            if (!page || page.missing !== undefined) return null;
-            return { img: page.thumbnail && page.thumbnail.source, extract: page.extract || '', title: page.title, lang: lang };
-        } catch (e) { return null; }
-    }
-
-    async function openPlant(i) {
-        const p = PLANTS[i];
-        const latin = LATIN[p.n] || p.n;
-        lastFocus = document.activeElement;
-
-        document.getElementById('mName').textContent = p.n;
-        document.getElementById('mLatin').textContent = latin;
-        document.getElementById('mMeta').innerHTML = meta(p);
-        document.getElementById('mText').textContent = '';
-        const link = document.getElementById('mLink');
-        link.textContent = 'Apri su Wikipedia';
-        link.style.display = 'none';
-        const media = document.getElementById('mMedia');
-        media.innerHTML = '<div class="spinner"></div>';
-        document.getElementById('modal').classList.add('open');
-        document.body.style.overflow = 'hidden';
-
-        let info = wikiCache[latin];
-        if (info === undefined) {
-            info = await wikiQuery(latin, 'it');
-            if (!info || !info.img) { const en = await wikiQuery(latin, 'en'); if (en && en.img) info = en; else info = info || en; }
-            if (!info || !info.img) { const it2 = await wikiQuery(p.n, 'it'); if (it2 && it2.img) info = it2; else info = info || it2; }
-            wikiCache[latin] = info;
-        }
-
-        // l'utente potrebbe aver chiuso o aperto un'altra scheda nel frattempo
-        if (document.getElementById('mName').textContent !== p.n) return;
-
-        if (info && info.img) {
-            media.innerHTML = '<img src="' + info.img + '" alt="' + p.n + '">';
-        } else {
-            media.innerHTML = '<div class="ph">Foto non disponibile al momento.<br>Apri la scheda per vedere le immagini.</div>';
-        }
-        if (info) {
-            if (info.extract) {
-                const t = info.extract.trim();
-                document.getElementById('mText').textContent = t.length > 360 ? t.slice(0, 360).trim() + '…' : t;
+    document.getElementById('chips').addEventListener('click', e => {
+        const ch = e.target.closest('.chip');
+        if (!ch) return;
+        flip(() => {
+            if (ch.dataset.key) {
+                const i = sortKeys.indexOf(ch.dataset.key);
+                if (i > -1) sortKeys.splice(i, 1); else sortKeys.push(ch.dataset.key);
+                applySort();
+            } else if (ch.dataset.tipo) {
+                state.tipo = state.tipo === ch.dataset.tipo ? '' : ch.dataset.tipo;
+                applyFilter();
+            } else if (ch.dataset.disp) {
+                state.disp = !state.disp;
+                applyFilter();
             }
-            link.href = 'https://' + info.lang + '.wikipedia.org/wiki/' + encodeURIComponent(info.title.replace(/ /g, '_'));
-        } else {
-            link.href = 'https://it.wikipedia.org/w/index.php?search=' + encodeURIComponent(latin);
-            link.textContent = 'Cerca su Wikipedia';
-        }
-        link.style.display = 'inline-block';
-    }
-
-    function closeModal() {
-        document.querySelectorAll('.modal-overlay.open').forEach(o => o.classList.remove('open'));
-        document.body.style.overflow = '';
-        if (lastFocus) lastFocus.focus();
-    }
-    function onOverlayClick(e) { if (e.target.classList.contains('modal-overlay')) closeModal(); }
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+        });
+        renderChips();
+    });
 
     /* ---- Quantità ---- */
     function syncStepper(input) {
         const q = parseInt(input.value, 10) || 0;
-        const stepper = input.closest('.stepper');
-        stepper.classList.toggle('active', q > 0);
-        stepper.querySelector('.step').disabled = q <= 0; // disabilita "−" a 0
+        const st = input.closest('.stepper');
+        st.classList.toggle('on', q > 0);
+        st.querySelector('.step').disabled = q <= 0; // "−" spento a 0
     }
     function onQtyInput(input) {
         let q = parseInt(input.value, 10);
         if (isNaN(q) || q < 0) q = 0;
+        if (q > 9999) q = 9999;
         if (input.value !== '') input.value = q;
         syncStepper(input);
         calculateTotal();
     }
-    function changeQty(btn, delta) {
-        const input = btn.parentNode.querySelector('.qty');
-        let q = (parseInt(input.value, 10) || 0) + delta;
-        if (q < 0) q = 0;
-        input.value = q;
-        syncStepper(input);
-        calculateTotal();
+    // la foglia parte dal + e vola fino al totale: si vede dove è finita la piantina
+    function flyToBar(fromEl) {
+        const target = document.getElementById('barTotalWrap');
+        if (REDUCE || !Element.prototype.animate) { bump(); return; }
+        const a = fromEl.getBoundingClientRect(), b = target.getBoundingClientRect();
+        const leaf = document.createElement('div');
+        leaf.className = 'fly';
+        leaf.innerHTML = LEAF_FILL;
+        const x0 = a.left + a.width / 2 - 10, y0 = a.top + a.height / 2 - 10;
+        const dx = b.left + 24 - x0, dy = b.top + b.height / 2 - 10 - y0;
+        leaf.style.left = x0 + 'px'; leaf.style.top = y0 + 'px';
+        document.body.appendChild(leaf);
+        leaf.animate([
+            { transform: 'translate(0,0) scale(.5) rotate(0deg)', opacity: 0 },
+            { transform: 'translate(' + dx * 0.3 + 'px,' + (Math.min(dy * 0.3, 0) - 70) + 'px) scale(1.2) rotate(-35deg)', opacity: 1, offset: 0.35 },
+            { transform: 'translate(' + dx + 'px,' + dy + 'px) scale(.45) rotate(25deg)', opacity: 0.3 }
+        ], { duration: 700, easing: 'cubic-bezier(.45, 0, .25, 1)' }).onfinish = () => { leaf.remove(); bump(); };
     }
+    function bump() {
+        if (REDUCE || !Element.prototype.animate) return;
+        document.getElementById('barTotalWrap').animate([{ transform: 'scale(1)' }, { transform: 'scale(1.08)' }, { transform: 'scale(1)' }], { duration: 320, easing: 'ease-out' });
+    }
+    grid.addEventListener('click', e => {
+        const st = e.target.closest('.step');
+        if (st) {
+            const input = st.parentNode.querySelector('.qty');
+            const d = +st.dataset.d;
+            const before = parseInt(input.value, 10) || 0;
+            const q = Math.min(9999, Math.max(0, before + d));
+            if (q === before) return;
+            input.value = q;
+            if (!REDUCE && input.animate) input.animate([{ transform: 'translateY(' + (d > 0 ? 45 : -45) + '%)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 200, easing: EASE_OUT });
+            syncStepper(input);
+            calculateTotal();
+            if (d > 0) flyToBar(st);
+            return;
+        }
+        const op = e.target.closest('[data-open]');
+        if (op) openPlant(+op.dataset.open);
+    });
+    grid.addEventListener('input', e => { if (e.target.classList.contains('qty')) onQtyInput(e.target); });
+    grid.addEventListener('focusin', e => { if (e.target.classList.contains('qty')) e.target.select(); });
 
     /* ---- Totali ---- */
-    function euro(n) { return '€ ' + n.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    function totals() {
+        let sub = 0, items = 0;
+        qtys.forEach(inp => { const q = parseInt(inp.value, 10) || 0; if (q > 0) { sub += q * PRICES[inp.dataset.k]; items += q; } });
+        return { sub: sub, iva: sub * CONFIG.iva, tot: sub * (1 + CONFIG.iva), items: items };
+    }
+    // il totale scorre fino al nuovo valore invece di cambiare di colpo
+    let shownTot = 0, tickRAF = 0, hadItems = false, booting = true;
+    function setTotal(v) {
+        const el = document.getElementById('barTotal');
+        cancelAnimationFrame(tickRAF);
+        const from = shownTot;
+        if (REDUCE || Math.abs(v - from) < 0.005) { shownTot = v; el.textContent = euro(v); return; }
+        const t0 = performance.now(), dur = 480;
+        const step = now => {
+            const k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 4);
+            shownTot = k < 1 ? from + (v - from) * e : v;
+            el.textContent = euro(shownTot);
+            if (k < 1) tickRAF = requestAnimationFrame(step);
+        };
+        tickRAF = requestAnimationFrame(step);
+    }
     function calculateTotal() {
-        let subtotal = 0, items = 0;
-        document.querySelectorAll('.qty').forEach(inp => {
-            const q = parseInt(inp.value, 10) || 0;
-            if (q > 0) { subtotal += q * parseFloat(inp.dataset.price); items += q; }
-        });
-        const iva = subtotal * 0.10;
-        document.getElementById('count').innerText = items;
-        document.getElementById('subtotal').innerText = euro(subtotal);
-        document.getElementById('iva').innerText = euro(iva);
-        document.getElementById('total').innerText = euro(subtotal + iva);
+        const t = totals();
+        document.getElementById('barCount').textContent = t.items ? t.items + (t.items === 1 ? ' piantina scelta' : ' piantine scelte') : 'Nessuna piantina scelta';
+        setTotal(t.tot);
+        // alla prima piantina scelta, un segnale discreto su dove andare dopo
+        if (t.items && !hadItems && !booting && !REDUCE) {
+            const b = document.getElementById('barBtn');
+            b.classList.remove('pulse'); void b.offsetWidth; b.classList.add('pulse');
+            b.addEventListener('animationend', () => b.classList.remove('pulse'), { once: true });
+        }
+        hadItems = t.items > 0;
         saveLocal();
     }
 
     /* ---- Salvataggio selezione (localStorage + link condivisibile) ---- */
-    const STORE = 'listino-piante-ordine';
+    const STORE = CONFIG.id;
+    // Impronta dell'elenco piante: la selezione è salvata per posizione, quindi se il
+    // vivaio aggiunge o toglie piante un vecchio link/salvataggio non va applicato
+    // (finirebbe sulle piante sbagliate). Cambiare solo i prezzi non la modifica.
+    const LIST_V = (function () {
+        const t = PLANTS.map(p => p.n).join('|'); let h = 5381;
+        for (let i = 0; i < t.length; i++) h = ((h << 5) + h + t.charCodeAt(i)) | 0;
+        return (h >>> 0).toString(36);
+    })();
     function getOrder() {
         const o = {};
-        document.querySelectorAll('.qty').forEach(inp => {
+        qtys.forEach(inp => {
             const q = parseInt(inp.value, 10) || 0;
-            if (q > 0) { (o[inp.dataset.i] = o[inp.dataset.i] || {})[inp.dataset.k] = q; }
+            if (q > 0) (o[inp.dataset.i] = o[inp.dataset.i] || {})[inp.dataset.k] = q;
         });
         return o;
     }
     function applyOrder(o) {
-        document.querySelectorAll('.qty').forEach(inp => {
-            const q = (o[inp.dataset.i] && o[inp.dataset.i][inp.dataset.k]) || 0;
-            inp.value = q; syncStepper(inp);
+        qtys.forEach(inp => {
+            inp.value = (o[inp.dataset.i] && o[inp.dataset.i][inp.dataset.k]) || 0;
+            syncStepper(inp);
         });
-        calculateTotal();
     }
-    function saveLocal() { try { localStorage.setItem(STORE, JSON.stringify(getOrder())); } catch (e) {} }
+    function saveLocal() { try { localStorage.setItem(STORE, JSON.stringify({ v: LIST_V, o: getOrder() })); } catch (e) {} }
     function encodeOrder(o) {
         const p = [];
-        for (const i in o) for (const k in o[i]) p.push(i + '-' + k.slice(1) + '-' + o[i][k]);
+        for (const i in o) for (const k in o[i]) p.push(i + '-' + k.replace(/^c/, '') + '-' + o[i][k]);
         return p.join('.');
     }
     function decodeOrder(s) {
@@ -850,73 +966,467 @@
     function loadSaved() {
         let o = null;
         const h = (location.hash || '').match(/o=([^&]+)/);
-        if (h) { try { o = decodeOrder(decodeURIComponent(h[1])); } catch (e) {} }
-        if (!o || !Object.keys(o).length) { try { o = JSON.parse(localStorage.getItem(STORE) || 'null'); } catch (e) {} }
+        const v = (location.hash || '').match(/v=([^&]+)/);
+        if (h && (!v || v[1] === LIST_V)) { try { o = decodeOrder(decodeURIComponent(h[1])); } catch (e) {} }
+        if (!o || !Object.keys(o).length) {
+            try {
+                const s = JSON.parse(localStorage.getItem(STORE) || 'null');
+                // formato vecchio = oggetto selezione senza impronta
+                o = (s && s.o && s.v) ? (s.v === LIST_V ? s.o : null) : s;
+            } catch (e) {}
+        }
         if (o && Object.keys(o).length) applyOrder(o);
-    }
-
-    /* ---- Modale "La tua selezione" (riepilogo / copia / link) ---- */
-    function openOrder() {
-        const o = getOrder(); const rows = []; let items = 0, sub = 0;
-        PLANTS.forEach((p, i) => {
-            if (o[i]) for (const k in o[i]) {
-                const q = o[i][k]; items += q; sub += q * PRICES[k];
-                rows.push('<div class="oitem"><span>' + p.n + ' <em>' + SIZE[k].l + '</em></span><span>×' + q + '</span></div>');
-            }
-        });
-        document.getElementById('oCount').textContent = items ? (items + ' piante') : '';
-        document.getElementById('oList').innerHTML = rows.length ? rows.join('') : '<p class="order-empty">Nessuna pianta selezionata.</p>';
-        document.getElementById('oTotal').innerHTML = rows.length ? ('Totale con IVA: <b>' + euro(sub * 1.10) + '</b>') : '';
-        document.getElementById('oMsg').textContent = '';
-        document.getElementById('orderModal').classList.add('open');
-        document.body.style.overflow = 'hidden';
-    }
-    function orderText() {
-        const o = getOrder(); const lines = ['Ordine piante:']; let sub = 0;
-        PLANTS.forEach((p, i) => { if (o[i]) for (const k in o[i]) { const q = o[i][k]; sub += q * PRICES[k]; lines.push('- ' + p.n + ' (' + SIZE[k].l + ') x' + q); } });
-        lines.push('Totale con IVA: ' + euro(sub * 1.10));
-        return lines.join('\n');
     }
     function orderLink() {
         const enc = encodeOrder(getOrder());
-        return location.origin + location.pathname + (enc ? '#o=' + enc : '');
+        return location.origin + location.pathname + (enc ? '#o=' + enc + '&v=' + LIST_V : '');
     }
-    function flash(msg) { document.getElementById('oMsg').textContent = msg; }
-    async function copyToClip(text, okMsg) {
-        try { await navigator.clipboard.writeText(text); flash(okMsg); }
+
+    /* ---- Pannelli ---- */
+    let lastFocus = null;
+    function openSheet(id, instant) {
+        closeSheets(true, true);
+        const s = document.getElementById('sheet-' + id);
+        clearTimeout(s._t);
+        lastFocus = lastFocus || document.activeElement;
+        s.hidden = false;
+        s.querySelector('.sheet-panel').scrollTop = 0;
+        if (instant) s.classList.add('instant', 'open');
+        else requestAnimationFrame(() => requestAnimationFrame(() => s.classList.add('open')));
+        document.body.classList.add('locked');
+        s.querySelector('.sheet-close').focus({ preventScroll: true });
+    }
+    function closeSheets(keepFocus, instant) {
+        document.querySelectorAll('.sheet:not([hidden])').forEach(s => {
+            s.classList.remove('instant', 'open');
+            clearTimeout(s._t);
+            if (instant) s.hidden = true;
+            else s._t = setTimeout(() => { s.hidden = true; }, 220);
+        });
+        if (keepFocus) return;
+        document.body.classList.remove('locked');
+        if (lastFocus && document.contains(lastFocus)) lastFocus.focus({ preventScroll: true });
+        lastFocus = null;
+    }
+    function requestClose() {
+        if (!document.getElementById('sheet-plant').hidden) closePlant();
+        else closeSheets();
+    }
+    document.querySelectorAll('.sheet').forEach(s => {
+        s.addEventListener('click', e => { if (e.target === s || e.target.closest('.sheet-close')) requestClose(); });
+    });
+    document.addEventListener('keydown', e => {
+        if (e.key !== 'Escape') return;
+        if (!document.getElementById('cover').hidden) closeCover();
+        else requestClose();
+    });
+
+    /* ---- Richiesta ---- */
+    const FORM_KEY = CONFIG.id + ':dati';
+    const form = document.getElementById('reqForm');
+    const vivaioSel = document.getElementById('fVivaio');
+    (CONFIG.vivai || []).forEach(v => vivaioSel.add(new Option(v, v)));
+    document.getElementById('vivaioField').hidden = !(CONFIG.vivai || []).length;
+    const waNum = String(CONFIG.whatsapp || '').replace(/\D/g, '');
+    document.getElementById('sendMail').hidden = !CONFIG.email;
+    document.getElementById('sendWa').hidden = !waNum;
+    if (!CONFIG.email && !waNum) document.getElementById('barBtn').innerHTML = '<span class="lbl-l">Vedi la selezione</span><span class="lbl-s">Selezione</span>';
+
+    function readForm() {
+        const d = {};
+        Array.from(form.elements).forEach(el => { if (el.name) d[el.name] = el.value.trim(); });
+        return d;
+    }
+    function loadForm() {
+        let d = null;
+        try { d = JSON.parse(localStorage.getItem(FORM_KEY) || 'null'); } catch (e) {}
+        if (d) Array.from(form.elements).forEach(el => { if (el.name && d[el.name] != null) el.value = d[el.name]; });
+    }
+    form.addEventListener('input', e => {
+        e.target.removeAttribute('aria-invalid');
+        try { localStorage.setItem(FORM_KEY, JSON.stringify(readForm())); } catch (err) {}
+    });
+
+    function renderOrder() {
+        const o = getOrder(); const rows = [];
+        PLANTS.forEach((p, i) => {
+            if (o[i]) CONFIG.formati.forEach(f => {
+                const q = o[i][f.k]; if (!q) return;
+                const l = latinShown(p);
+                rows.push('<li><span><span class="o-n">' + esc(p.n) + '</span>' + (l ? ' <span class="o-l">' + esc(l) + '</span>' : '') + '<br><span class="o-d">' + esc(f.etichetta) + ', ' + q + ' × ' + euro(f.prezzo) + '</span></span>' +
+                    '<span class="o-q">' + euro(q * f.prezzo) + '</span></li>');
+            });
+        });
+        const t = totals();
+        document.getElementById('oList').innerHTML = rows.length ? rows.join('') : '<li class="o-empty">Non hai ancora scelto nessuna piantina. Chiudi e usa i pulsanti + accanto ai formati.</li>';
+        document.getElementById('oTotals').innerHTML = rows.length ?
+            '<dt>Imponibile</dt><dd>' + euro(t.sub) + '</dd><dt>IVA ' + IVA_PCT + '</dt><dd>' + euro(t.iva) + '</dd>' +
+            '<dt class="grand">Totale</dt><dd class="grand">' + euro(t.tot) + '</dd>' : '';
+        document.getElementById('orderTitle').textContent = rows.length ? 'La tua richiesta' : 'Nessuna piantina scelta';
+        flash('');
+    }
+    function requestText() {
+        const d = readForm(), o = getOrder(), L = [];
+        const t = totals();
+        L.push('Richiesta piante forestali' + (DEMO ? ' (prova dalla demo)' : ''));
+        if (d.vivaio) L.push('Vivaio di ritiro: ' + d.vivaio);
+        L.push('');
+        if (d.nome) L.push('Richiedente: ' + d.nome);
+        if (d.cf) L.push('Codice fiscale / P. IVA: ' + d.cf);
+        if (d.tel) L.push('Telefono: ' + d.tel);
+        if (d.email) L.push('Email: ' + d.email);
+        if (d.comune) L.push('Comune di impianto: ' + d.comune);
+        L.push('');
+        L.push('Piante richieste:');
+        PLANTS.forEach((p, i) => {
+            if (o[i]) CONFIG.formati.forEach(f => {
+                const q = o[i][f.k]; if (!q) return;
+                const l = latinShown(p);
+                L.push('- ' + p.n + (l ? ' (' + l + ')' : '') + ', ' + f.etichetta + ': ' + q + ' × ' + euro(f.prezzo) + ' = ' + euro(q * f.prezzo));
+            });
+        });
+        L.push('');
+        L.push('Imponibile: ' + euro(t.sub));
+        L.push('IVA ' + IVA_PCT + ': ' + euro(t.iva));
+        L.push('Totale: ' + euro(t.tot));
+        if (d.note) { L.push(''); L.push('Note: ' + d.note); }
+        L.push('');
+        L.push('Selezione online: ' + orderLink());
+        return L.join('\n');
+    }
+    function flash(msg, err) {
+        const m = document.getElementById('oMsg');
+        m.textContent = msg;
+        m.classList.toggle('err', !!err);
+    }
+    function shake(el) {
+        if (!REDUCE && el.animate) el.animate([{ transform: 'none' }, { transform: 'translateX(-7px)' }, { transform: 'translateX(6px)' }, { transform: 'translateX(-3px)' }, { transform: 'none' }], { duration: 340, easing: 'ease-out' });
+    }
+    function validate() {
+        if (!Object.keys(getOrder()).length) { flash('Scegli almeno una piantina prima di inviare.', true); return false; }
+        const nome = document.getElementById('fNome'), tel = document.getElementById('fTel'), mail = document.getElementById('fEmail');
+        [nome, tel, mail].forEach(el => el.removeAttribute('aria-invalid'));
+        if (!nome.value.trim()) { nome.setAttribute('aria-invalid', 'true'); nome.focus(); shake(nome); flash('Scrivi il nome o l\'ente che fa la richiesta.', true); return false; }
+        if (!tel.value.trim() && !mail.value.trim()) { tel.setAttribute('aria-invalid', 'true'); mail.setAttribute('aria-invalid', 'true'); tel.focus(); shake(tel); shake(mail); flash('Lascia almeno un recapito: telefono o email.', true); return false; }
+        return true;
+    }
+    function subject() { return (DEMO ? '[DEMO] ' : '') + 'Richiesta piante forestali' + (readForm().nome ? ', ' + readForm().nome : ''); }
+    document.getElementById('sendMail').addEventListener('click', () => {
+        if (!validate()) return;
+        location.href = 'mailto:' + CONFIG.email + '?subject=' + encodeURIComponent(subject()) + '&body=' + encodeURIComponent(requestText());
+        flash('Si apre la tua app di posta con la richiesta già scritta: controlla e premi Invia.');
+    });
+    document.getElementById('sendWa').addEventListener('click', () => {
+        if (!validate()) return;
+        window.open('https://wa.me/' + waNum + '?text=' + encodeURIComponent(requestText()), '_blank', 'noopener');
+        flash('Si apre WhatsApp con la richiesta già scritta: controlla e premi Invia.');
+    });
+    function done(btn, label) {
+        const l = btn.querySelector('.lbl'), orig = btn.dataset.orig || l.textContent;
+        btn.dataset.orig = orig;
+        l.textContent = label;
+        btn.classList.add('done');
+        clearTimeout(btn._t);
+        btn._t = setTimeout(() => { l.textContent = orig; btn.classList.remove('done'); }, 1800);
+    }
+    async function copyToClip(text, btn, okMsg) {
+        let ok = false;
+        try { await navigator.clipboard.writeText(text); ok = true; }
         catch (e) {
             const ta = document.createElement('textarea');
             ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+            ta.style.fontSize = '16px'; // anche nascosta: sotto i 16px iOS zooma al focus
             document.body.appendChild(ta); ta.focus(); ta.select();
-            try { document.execCommand('copy'); flash(okMsg); } catch (e2) { flash(text); }
+            try { ok = document.execCommand('copy'); } catch (e2) {}
             document.body.removeChild(ta);
         }
+        if (ok) { done(btn, 'Copiato'); flash(okMsg); } else flash(text);
     }
-    function copyOrderText() {
-        if (!Object.keys(getOrder()).length) { flash('Nessuna selezione da copiare.'); return; }
-        copyToClip(orderText(), 'Riepilogo copiato negli appunti.');
-    }
-    function copyOrderLink() { copyToClip(orderLink(), 'Link copiato. Aprilo o invialo per ritrovare la selezione.'); }
-
-    /* ---- Ricerca (solo sul nome) ---- */
-    function filterTable() {
-        const f = document.getElementById('searchInput').value.toLowerCase();
-        tbody.querySelectorAll('tr').forEach(tr => {
-            tr.style.display = tr.dataset.name.toLowerCase().indexOf(f) > -1 ? '' : 'none';
-        });
-    }
-
-    /* ---- Reset selezione ---- */
-    function resetSelection() {
-        document.querySelectorAll('.qty').forEach(inp => { inp.value = 0; syncStepper(inp); });
+    document.getElementById('copyText').addEventListener('click', e => {
+        if (!Object.keys(getOrder()).length) { flash('Non c\'è ancora niente da copiare.', true); return; }
+        copyToClip(requestText(), e.currentTarget, 'Testo della richiesta copiato.');
+    });
+    document.getElementById('copyLink').addEventListener('click', e => copyToClip(orderLink(), e.currentTarget, 'Link copiato: chi lo apre ritrova la stessa selezione.'));
+    document.getElementById('resetBtn').addEventListener('click', () => {
+        qtys.forEach(inp => { inp.value = 0; syncStepper(inp); });
         calculateTotal();
+        renderOrder();
+    });
+    document.getElementById('barBtn').addEventListener('click', () => { renderOrder(); openSheet('order'); });
+
+    /* ---- Foto delle specie (Wikipedia / Wikimedia Commons) ---- */
+    const API = lang => 'https://' + lang + '.wikipedia.org/w/api.php?action=query&format=json&origin=*';
+    // Miniature per tutte le schede: poche richieste da 50 titoli l'una
+    async function loadThumbs() {
+        const byTitle = {};
+        PLANTS.forEach((p, i) => { const t = LATIN[p.n] || p.n; (byTitle[t] = byTitle[t] || []).push(i); });
+        let todo = Object.keys(byTitle);
+        for (const lang of ['it', 'en']) {
+            const missing = [];
+            for (let s = 0; s < todo.length; s += 50) {
+                const batch = todo.slice(s, s + 50);
+                let data;
+                try {
+                    data = await (await fetch(API(lang) + '&prop=pageimages&piprop=thumbnail&pithumbsize=200&pilimit=50&redirects=1&titles=' + encodeURIComponent(batch.join('|')))).json();
+                } catch (e) { return; }
+                const q = data.query || {}, thumb = {};
+                Object.values(q.pages || {}).forEach(pg => { if (pg.thumbnail) thumb[pg.title] = pg.thumbnail.source; });
+                const follow = t => {
+                    (q.normalized || []).forEach(n => { if (n.from === t) t = n.to; });
+                    (q.redirects || []).forEach(r => { if (r.from === t) t = r.to; });
+                    return t;
+                };
+                batch.forEach(t => {
+                    const src = thumb[follow(t)];
+                    if (!src) { missing.push(t); return; }
+                    byTitle[t].forEach(i => {
+                        const b = grid.querySelector('.card[data-index="' + i + '"] .thumb');
+                        const img = document.createElement('img');
+                        img.alt = ''; img.loading = 'lazy'; img.decoding = 'async';
+                        img.onload = () => img.classList.add('ok');
+                        img.onerror = () => img.remove();
+                        img.src = src;
+                        b.appendChild(img); // lazy funziona solo con l'immagine già nella pagina
+                    });
+                });
+            }
+            todo = missing;
+            if (!todo.length) break;
+        }
     }
 
-    // stato iniziale steppers (disabilita "−" a 0)
-    document.querySelectorAll('.qty').forEach(syncStepper);
+    const wikiCache = {};
+    async function wikiQuery(title, lang) {
+        try {
+            const data = await (await fetch(API(lang) + '&prop=pageimages|extracts&piprop=thumbnail|name&exintro=1&explaintext=1&redirects=1&pithumbsize=800&titles=' + encodeURIComponent(title))).json();
+            const page = Object.values(data.query.pages)[0];
+            if (!page || page.missing !== undefined) return null;
+            return { img: page.thumbnail && page.thumbnail.source, file: page.pageimage, extract: page.extract || '', title: page.title, lang: lang };
+        } catch (e) { return null; }
+    }
+    // Autore e licenza della foto: le immagini di Wikimedia Commons vanno attribuite
+    async function wikiCredit(file, lang) {
+        try {
+            const data = await (await fetch(API(lang) + '&prop=imageinfo&iiprop=extmetadata|url&iiextmetadatafilter=Artist|LicenseShortName&titles=' + encodeURIComponent('File:' + file))).json();
+            const ii = (Object.values(data.query.pages)[0].imageinfo || [])[0];
+            if (!ii) return null;
+            const m = ii.extmetadata || {};
+            const artist = m.Artist ? new DOMParser().parseFromString(m.Artist.value, 'text/html').body.textContent.trim() : '';
+            return { artist: artist, license: m.LicenseShortName ? m.LicenseShortName.value : '', url: ii.descriptionurl };
+        } catch (e) { return null; }
+    }
+    function renderCredit(info) {
+        const box = document.getElementById('pCredit');
+        box.textContent = '';
+        if (!info) return;
+        if (info.img) {
+            const c = info.credit || {};
+            const a = document.createElement('a');
+            a.href = c.url || ('https://' + info.lang + '.wikipedia.org/wiki/File:' + encodeURIComponent(info.file || ''));
+            a.target = '_blank'; a.rel = 'noopener';
+            a.textContent = 'Foto' + (c.artist ? ' di ' + c.artist : '') + (c.license ? ', licenza ' + c.license : '') + ', da Wikimedia Commons';
+            box.appendChild(a);
+            box.appendChild(document.createTextNode('. '));
+        }
+        box.appendChild(document.createTextNode('Testo da Wikipedia, licenza CC BY-SA 4.0.'));
+    }
 
-    // ripristina la selezione salvata (link condiviso o localStorage)
+    // La foto e il nome passano dalla scheda al pannello con View Transitions (dove supportate)
+    const canVT = !!document.startViewTransition && !REDUCE;
+    let plantFrom = null, plantSeq = 0;
+    function vtPair(card) {
+        return card ? [card.querySelector('.thumb'), card.querySelector('.name-btn')] : [null, null];
+    }
+    async function openPlant(i) {
+        const seq = ++plantSeq;
+        const p = PLANTS[i];
+        const latin = LATIN[p.n] || p.n;
+        const card = grid.querySelector('.card[data-index="' + i + '"]');
+        const pName = document.getElementById('pName'), media = document.getElementById('pMedia');
+        pName.textContent = p.n;
+        document.getElementById('pLatin').textContent = LATIN_SHOW[p.n] || latin;
+        document.getElementById('pTraits').innerHTML = traitsHTML(p);
+        document.getElementById('pText').textContent = '';
+        document.getElementById('pCredit').textContent = '';
+        const link = document.getElementById('pLink');
+        link.hidden = true;
+        // subito la miniatura già caricata, poi la foto grande quando arriva
+        const lo = card && card.querySelector('.thumb img.ok');
+        media.textContent = '';
+        if (lo) { const im = document.createElement('img'); im.src = lo.src; im.alt = p.n; media.appendChild(im); }
+        else media.innerHTML = '<div class="spinner" role="status" aria-label="Caricamento foto"></div>';
+
+        plantFrom = card;
+        const [thumb, nameBtn] = vtPair(card);
+        if (canVT && thumb && inView(thumb)) {
+            thumb.style.viewTransitionName = 'pmedia'; nameBtn.style.viewTransitionName = 'pname';
+            const vt = document.startViewTransition(() => {
+                thumb.style.viewTransitionName = ''; nameBtn.style.viewTransitionName = '';
+                media.style.viewTransitionName = 'pmedia'; pName.style.viewTransitionName = 'pname';
+                lastFocus = thumb;
+                openSheet('plant', true);
+            });
+            vt.finished.finally(() => {
+                media.style.viewTransitionName = ''; pName.style.viewTransitionName = '';
+                document.getElementById('sheet-plant').classList.remove('instant');
+            });
+        } else openSheet('plant');
+
+        let info = wikiCache[latin];
+        if (info === undefined) {
+            info = await wikiQuery(latin, 'it');
+            if (!info || !info.img) { const en = await wikiQuery(latin, 'en'); if (en && en.img) info = en; else info = info || en; }
+            if (!info || !info.img) { const it2 = await wikiQuery(p.n, 'it'); if (it2 && it2.img) info = it2; else info = info || it2; }
+            if (info && info.img && info.file) info.credit = await wikiCredit(info.file, info.lang);
+            wikiCache[latin] = info;
+        }
+        if (seq !== plantSeq) return; // nel frattempo è stata aperta un'altra scheda
+
+        if (info && info.img) {
+            const img = document.createElement('img');
+            img.className = 'hi'; img.alt = p.n;
+            img.onload = () => { img.classList.add('ok'); };
+            img.src = info.img;
+            const sp = media.querySelector('.spinner'); if (sp) sp.remove();
+            media.appendChild(img);
+        } else if (!lo) {
+            media.innerHTML = '<div class="ph">Foto non disponibile al momento.</div>';
+        }
+        if (info) {
+            if (info.extract) {
+                const t = info.extract.trim();
+                document.getElementById('pText').textContent = t.length > 420 ? t.slice(0, 420).trim() + '…' : t;
+            }
+            link.textContent = 'Apri su Wikipedia';
+            link.href = 'https://' + info.lang + '.wikipedia.org/wiki/' + encodeURIComponent(info.title.replace(/ /g, '_'));
+        } else {
+            link.textContent = 'Cerca su Wikipedia';
+            link.href = 'https://it.wikipedia.org/w/index.php?search=' + encodeURIComponent(latin);
+        }
+        link.hidden = false;
+        renderCredit(info);
+    }
+    function closePlant() {
+        const [thumb, nameBtn] = vtPair(plantFrom);
+        const media = document.getElementById('pMedia'), pName = document.getElementById('pName');
+        if (!canVT || !thumb || !inView(thumb) || document.getElementById('sheet-plant').querySelector('.sheet-panel').scrollTop > 40) { closeSheets(); return; }
+        media.style.viewTransitionName = 'pmedia'; pName.style.viewTransitionName = 'pname';
+        const vt = document.startViewTransition(() => {
+            media.style.viewTransitionName = ''; pName.style.viewTransitionName = '';
+            thumb.style.viewTransitionName = 'pmedia'; nameBtn.style.viewTransitionName = 'pname';
+            closeSheets(false, true);
+        });
+        vt.finished.finally(() => { thumb.style.viewTransitionName = ''; nameBtn.style.viewTransitionName = ''; });
+    }
+
+    /* ---- Demo: copertina e nota ---- */
+    const foot = document.getElementById('foot');
+    foot.innerHTML =
+        (DEMO ? '<p>Demo non ufficiale realizzata da ' + esc(DEMO.autore) + ' per i ' + esc(CONFIG.nome) + '. Specie, formati e prezzi vengono dal modulo di richiesta del vivaio; altezza, crescita, esposizione e frutti sono indicativi.</p>' : '') +
+        '<p>Foto e descrizioni da Wikipedia e Wikimedia Commons: autore e licenza di ogni foto sono nella scheda della specie.</p>';
+
+    // Filare di piantine nei contenitori: crescono, ondeggiano e si scostano dal dito
+    function bench() {
+        const n = 24, W = 22, base = 136;
+        let s = '<svg class="bench" id="benchSvg" viewBox="0 0 ' + (n * W) + ' 170" preserveAspectRatio="xMidYMax slice" aria-hidden="true">';
+        for (let i = 0; i < n; i++) {
+            const x = i * W + W / 2;
+            const h = 36 + ((i * 37 + 11) % 13) * 5.4;
+            const top = base - h;
+            const conifer = i % 5 === 2;
+            const sd = (4 + ((i * 53) % 7) * 0.45).toFixed(2), sp = (-((i * 29) % 11) * 0.4).toFixed(2);
+            s += '<g class="sprout" style="--i:' + i + '"><g class="lean" data-x="' + x + '"><g class="sway" style="--sd:' + sd + 's;--sp:' + sp + 's">';
+            if (conifer) {
+                for (let j = 0; j < 3; j++) {
+                    const y = top + j * h * 0.22, w = 5 + j * 2.6;
+                    s += '<path d="M' + x + ' ' + y + 'L' + (x - w) + ' ' + (y + h * 0.3) + 'L' + (x + w) + ' ' + (y + h * 0.3) + 'Z" fill="' + (j % 2 ? '#8FB06A' : '#A9C77C') + '"/>';
+                }
+                s += '<path d="M' + x + ' ' + (top + h * 0.7) + 'V' + base + '" stroke="#7E9C5C" stroke-width="2"/>';
+            } else {
+                s += '<path d="M' + x + ' ' + base + 'V' + top + '" stroke="#9DBB6A" stroke-width="2" stroke-linecap="round"/>';
+                const leaves = 2 + (i % 3);
+                for (let j = 0; j < leaves; j++) {
+                    const y = top + 4 + j * (h * 0.62 / leaves), side = (i + j) % 2 ? 1 : -1, sc = 1 - j * 0.12;
+                    s += '<path d="M0 0C4 -6 12 -6 15 0C12 5 4 5 0 0Z" fill="' + (j % 2 ? '#CFE29A' : '#A9C77C') + '" transform="translate(' + x + ' ' + y + ') scale(' + (side * sc) + ' ' + sc + ') rotate(-28)"/>';
+                }
+            }
+            s += '</g></g></g>';
+            s += '<path d="M' + (x - 8) + ' ' + base + 'H' + (x + 8) + 'L' + (x + 6) + ' 160H' + (x - 6) + 'Z" fill="#10241D"/>';
+        }
+        s += '<rect x="0" y="160" width="' + (n * W) + '" height="10" fill="#0C1C16"/></svg>';
+        return s;
+    }
+    function benchLean() {
+        const svgEl = document.getElementById('benchSvg');
+        if (!svgEl || REDUCE) return;
+        const leans = Array.from(svgEl.querySelectorAll('.lean'));
+        let raf = 0, px = null;
+        const apply = () => {
+            raf = 0;
+            leans.forEach(g => {
+                if (px === null) { g.style.setProperty('--lean', '0deg'); return; }
+                const r = g.getBoundingClientRect(), dx = (r.left + r.width / 2) - px, f = Math.max(0, 1 - Math.abs(dx) / 150);
+                g.style.setProperty('--lean', (Math.sign(dx) * f * 14).toFixed(1) + 'deg');
+            });
+        };
+        const move = e => { px = e.clientX; if (!raf) raf = requestAnimationFrame(apply); };
+        const cover = document.getElementById('cover');
+        cover.addEventListener('pointermove', move);
+        cover.addEventListener('pointerdown', move);
+        ['pointerleave', 'pointerup', 'pointercancel'].forEach(t => cover.addEventListener(t, () => { px = null; if (!raf) raf = requestAnimationFrame(apply); }));
+    }
+
+    const cover = document.getElementById('cover');
+    const COVER_KEY = CONFIG.id + ':intro';
+    function showCover() {
+        cover.classList.remove('out');
+        cover.hidden = false;
+        document.body.classList.add('locked');
+        cover.focus({ preventScroll: true });
+    }
+    function closeCover() {
+        try { sessionStorage.setItem(COVER_KEY, '1'); } catch (e) {}
+        if (REDUCE) { cover.hidden = true; document.body.classList.remove('locked'); return; }
+        cover.classList.add('out'); // il sipario sale e scopre il listino
+        setTimeout(() => { cover.hidden = true; document.body.classList.remove('locked'); }, 560);
+        revealCards(220);
+    }
+    if (DEMO) {
+        const title = document.getElementById('coverTitle');
+        // parole del titolo una per una, per l'entrata a fuoco
+        title.innerHTML = title.textContent.split(' ').map((w, i) => '<span class="w" style="--d:' + (200 + i * 60) + 'ms">' + esc(w) + '</span>').join(' ');
+        document.getElementById('coverFor').textContent = 'Demo per i ' + CONFIG.nome + (CONFIG.luogo ? ' di ' + CONFIG.luogo : '');
+        document.getElementById('coverLead').textContent = 'Lo stesso listino del modulo di richiesta, da sfogliare con le foto delle specie, scegliere e inviare al vivaio già completo.';
+        document.getElementById('coverBy').textContent = 'Demo non ufficiale realizzata da ' + DEMO.autore + '.';
+        document.getElementById('bench').innerHTML = bench();
+        benchLean();
+        document.getElementById('coverGo').addEventListener('click', closeCover);
+        // toccando il nome in alto si rivede la copertina
+        const bb = document.getElementById('brandBtn');
+        bb.classList.add('link'); bb.removeAttribute('tabindex');
+        bb.setAttribute('aria-label', CONFIG.nome + ', rivedi la presentazione');
+        bb.addEventListener('click', showCover);
+
+        let seen = null;
+        try { seen = sessionStorage.getItem(COVER_KEY); } catch (e) {}
+        if (!seen && !/o=/.test(location.hash)) showCover();
+        else revealCards(0);
+    } else revealCards(0);
+
+    /* ---- Avvio ---- */
+    qtys.forEach(syncStepper);
+    applyFilter();
+    loadForm();
     loadSaved();
+    calculateTotal();
+    booting = false;
+    loadThumbs();
+
+    // la barra totale cambia altezza (righe a capo, safe area): il fondo pagina la segue
+    const bar = document.getElementById('bar');
+    function padForBar() { document.body.style.paddingBottom = (bar.offsetHeight + 16) + 'px'; }
+    if (window.ResizeObserver) new ResizeObserver(padForBar).observe(bar);
+    padForBar();
 </script>
 
 </body>
